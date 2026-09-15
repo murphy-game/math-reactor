@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>機甲反應爐 v2.2 (完整優化版)</title>
+    <title>機甲反應爐 v2.3 (全裝置速算語音版)</title>
     <style>
         :root {
             --primary: #eb4d4b;
@@ -17,17 +17,16 @@
         * { 
             box-sizing: border-box; 
             user-select: none; -webkit-user-select: none; 
-            touch-action: manipulation; /* 關鍵：只允許點擊和滑動，禁止縮放手勢 */
+            touch-action: manipulation; /* 允許點擊，禁止縮放手勢 */
         }
 
         body {
             font-family: "Segoe UI", Roboto, Arial, sans-serif;
             background-color: #2f3640;
             margin: 0;
-            overflow: hidden; /* 禁止捲動 */
+            overflow: hidden;
             display: flex; justify-content: center; align-items: center;
             min-height: 100vh; min-height: 100dvh;
-            /* 強制鎖定視窗，防止 iOS 彈性捲動 */
             position: fixed; width: 100%; height: 100%;
         }
 
@@ -50,7 +49,7 @@
             color: var(--text);
         }
 
-        /* --- 頂部控制列 (HUD) --- */
+        /* HUD */
         .hud-controls {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 10px;
@@ -78,7 +77,7 @@
         }
 
         /* 題目與怪獸 */
-        .question-area { position: relative; height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .question-area { position: relative; height: 90px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .question { font-size: 3.5rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--primary); margin: 0; line-height: 1; z-index: 2; }
         .combo-text {
             font-size: 1.5rem; color: var(--combo-color); font-weight: bold; font-style: italic;
@@ -87,7 +86,7 @@
         .combo-active { animation: comboPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes comboPop { 0% { opacity: 0; transform: scale(0.5) rotate(-10deg); } 50% { opacity: 1; transform: scale(1.5) rotate(0deg); } 100% { opacity: 1; transform: scale(1.2) rotate(0deg); } }
 
-        .monster-zone { height: 120px; position: relative; margin-bottom: 5px; display: flex; justify-content: center; align-items: flex-end; }
+        .monster-zone { height: 110px; position: relative; margin-bottom: 5px; display: flex; justify-content: center; align-items: flex-end; }
         .monster-img { height: 100%; object-fit: contain; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); transition: 0.2s; }
         .monster-hit { animation: shakeMonster 0.4s; filter: brightness(2) sepia(1) hue-rotate(-50deg) !important; }
         @keyframes shakeMonster { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
@@ -96,7 +95,7 @@
         .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .opt-btn {
             background: rgba(255,255,255,0.1); border: 2px solid var(--accent);
-            color: #fff; padding: 12px 0; font-size: 2rem; border-radius: 10px;
+            color: #fff; padding: 14px 0; font-size: 2.2rem; border-radius: 12px;
             cursor: pointer; font-weight: bold; font-family: inherit; transition: all 0.1s;
         }
         .opt-btn:active { background: var(--accent); transform: scale(0.95); }
@@ -122,32 +121,35 @@
         /* 遮罩層 (暫停/結算) */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 100;
+            background: rgba(0,0,0,0.92); z-index: 100;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
+            border-radius: 15px;
         }
         .hidden { display: none !important; }
-        .menu-btn { background: transparent; border: 2px solid var(--accent); color: white; padding: 10px 30px; border-radius: 50px; font-size: 1.2rem; cursor: pointer; margin-top: 20px; }
-        .result-box img { width: 150px; margin-bottom: 10px; }
+        .menu-btn { background: transparent; border: 2px solid var(--accent); color: white; padding: 10px 30px; border-radius: 50px; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
+        .result-box img { width: 130px; margin-bottom: 10px; }
         .retry-btn { background: var(--primary); color: white; width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 1.5rem; margin-top: 10px; cursor: pointer;}
     </style>
 </head>
 <body>
 
     <div class="battle-bg" id="bg-layer"></div>
-    <img id="hero-img" src="" alt="Hero">
+    <img id="hero-img" src="" alt="Hero" onerror="this.style.display='none';">
 
     <div class="container">
+        <!-- 主選單 -->
         <div id="menu-screen">
-            <h1 style="color: var(--accent); margin-bottom: 5px;">⚛️ 機甲反應爐</h1>
+            <h1 style="color: var(--accent); margin-bottom: 5px; font-size: 2.2rem;">⚛️ 機甲反應爐</h1>
             <p style="color: #ccc; margin-top: 0;">乘法速算 • 極限挑戰</p>
             <div style="margin-top: 20px;">
-                <button class="level-btn lv1" onclick="startGame(1)">🟢 暖身運轉 (2, 5, 10)</button>
-                <button class="level-btn lv2" onclick="startGame(2)">🟡 標準功率 (3, 4, 6)</button>
-                <button class="level-btn lv3" onclick="startGame(3)">🔴 全力輸出 (7, 8, 9)</button>
-                <button class="level-btn lv4" onclick="startGame(4)">🔥 爐心融毀 (混合極速)</button>
+                <button class="level-btn lv1" onclick="startGame(1)">🟢 暖身運轉 (2, 5, 10 乘法)</button>
+                <button class="level-btn lv2" onclick="startGame(2)">🟡 標準功率 (3, 4, 6 乘法)</button>
+                <button class="level-btn lv3" onclick="startGame(3)">🔴 全力輸出 (7, 8, 9 乘法)</button>
+                <button class="level-btn lv4" onclick="startGame(4)">🔥 爐心融毀 (九九乘法極速)</button>
             </div>
         </div>
 
+        <!-- 遊戲主畫面 -->
         <div id="game-screen" class="hidden">
             <div class="hud-controls">
                 <button class="icon-btn" onclick="togglePause()">⏸ 暫停</button>
@@ -160,27 +162,29 @@
             </div>
 
             <div class="monster-zone">
-                <img id="monster-img" class="monster-img" src="" alt="Monster">
-                <img id="boom-img" src="" alt="Boom">
+                <img id="monster-img" class="monster-img" src="" alt="Monster" onerror="this.style.display='none';">
+                <img id="boom-img" src="" alt="Boom" onerror="this.style.display='none';">
                 <div id="combo-display" class="combo-text">COMBO x2</div>
             </div>
 
             <div class="question-area">
-                <div class="question" id="q-text">5 x 5</div>
+                <div class="question" id="q-text">5 &times; 5</div>
             </div>
 
             <div class="options" id="options-area"></div>
         </div>
 
+        <!-- 暫停畫面 -->
         <div id="pause-screen" class="overlay hidden">
             <h1 style="color: var(--accent);">已暫停</h1>
             <button class="menu-btn" onclick="togglePause()">▶ 繼續戰鬥</button>
             <button class="menu-btn" onclick="backToMenu()">⏮ 放棄任務</button>
         </div>
 
+        <!-- 結算畫面 -->
         <div id="result-screen" class="overlay hidden result-box">
             <h1 id="result-title">任務完成</h1>
-            <img id="result-img" src="" alt="Result">
+            <img id="result-img" src="" alt="Result" onerror="this.style.display='none';">
             <div style="font-size: 1.5rem; margin: 10px 0;">最終得分: <span id="final-score" style="color: var(--accent)">0</span></div>
             <div id="max-combo-text" style="color: #aaa; font-size: 1rem;">最大連擊: 0</div>
             <button class="retry-btn" onclick="restartGame()">重新啟動反應爐</button>
@@ -190,11 +194,11 @@
 
     <script>
         const IMAGES = {
-            hero: "hero.png", bg: "bg_reactor.png", monsters: ["m1.png", "m2.png", "m3.png", "m4.png", "m5.png"],
+            hero: "hero.png", bg: "bg.png", monsters: ["m1.png", "m2.png", "m3.png", "m4.png", "m5.png"],
             boom: "boom.png", win: "win.png", lose: "lose.png"
         };
         const BASE_URL = ""; 
-        let config = { totalQ: 15, baseTime: 10, comboBonus: 50 };
+        let config = { totalQ: 15, baseTime: 10 };
         let state = { level: 1, score: 0, combo: 0, maxCombo: 0, currentQ: 0, timer: null, timeLeft: 0, answer: 0, isAnswering: false, isPaused: false };
 
         const els = {
@@ -212,67 +216,84 @@
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
 
-        // ★★★ 核心修復：初始化與喚醒 AudioContext ★★★
         function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new AudioContext();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
-        // ★★★ 強力防縮放邏輯 (JS 層面) ★★★
-        // 1. 阻止 iOS 的雙指縮放 (Pinch to zoom)
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
-        });
-        
-        // 2. 阻止連續點擊放大 (Double tap to zoom)
-        document.addEventListener('dblclick', function(e) {
-            e.preventDefault();
-        }, { passive: false });
+        // 防手勢縮放
+        document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+        document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
 
-        // 3. 監聽全域點擊，強制喚醒音效引擎
         document.body.addEventListener('click', function() { initAudio(); }, { once: true });
         document.body.addEventListener('touchstart', function() { initAudio(); }, { once: true });
 
         function init() {
-            els.hero.src = BASE_URL + IMAGES.hero; els.boom.src = BASE_URL + IMAGES.boom;
+            els.hero.src = BASE_URL + IMAGES.hero; 
+            els.boom.src = BASE_URL + IMAGES.boom;
             els.bg.style.backgroundImage = `url('${BASE_URL + IMAGES.bg}')`;
-            let img = new Image(); img.onerror = () => { els.bg.style.backgroundImage = "url('bg.png')"; };
-            img.src = BASE_URL + IMAGES.bg;
         }
 
-        function speak(text) {
+        // 語音朗讀優化 (防止破音字「勝」)
+        function speakQuestion(n1, n2) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel(); 
+            
+            // 使用「成以」確保發音為 ㄔㄥˊ
+            const qSpeech = `${n1} 成以 ${n2}`;
+            const u = new SpeechSynthesisUtterance(qSpeech);
+            u.lang = 'zh-TW'; 
+            u.rate = 1.0; 
+            u.pitch = 1.2;
+            window.speechSynthesis.speak(u);
+        }
+
+        function speakText(text) {
             if (!window.speechSynthesis) return;
             window.speechSynthesis.cancel(); 
             const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'zh-TW'; u.rate = 1.2; 
+            u.lang = 'zh-TW'; 
+            u.rate = 1.1; 
+            u.pitch = 1.3;
             window.speechSynthesis.speak(u);
         }
 
         function startGame(lv) {
-            initAudio(); // 確保開始時嘗試喚醒
+            initAudio();
             state.level = lv; state.score = 0; state.combo = 0; state.maxCombo = 0; state.currentQ = 0; state.isPaused = false;
-            if (lv === 1) config.baseTime = 10; else if (lv === 2) config.baseTime = 8;
-            else if (lv === 3) config.baseTime = 6; else config.baseTime = 5;
-            els.menu.classList.add('hidden'); els.result.classList.add('hidden'); els.game.classList.remove('hidden');
-            speak("反應爐啟動！"); nextQuestion();
+            
+            if (lv === 1) config.baseTime = 10; 
+            else if (lv === 2) config.baseTime = 8;
+            else if (lv === 3) config.baseTime = 6; 
+            else config.baseTime = 5;
+
+            els.menu.classList.add('hidden'); 
+            els.result.classList.add('hidden'); 
+            els.game.classList.remove('hidden');
+            
+            speakText("反應爐啟動！"); 
+            nextQuestion();
         }
 
         function togglePause() {
             state.isPaused = !state.isPaused;
             if(state.isPaused) {
-                els.pause.classList.remove('hidden'); clearInterval(state.timer);
+                if(window.speechSynthesis) window.speechSynthesis.cancel();
+                els.pause.classList.remove('hidden'); 
+                clearInterval(state.timer);
             } else {
-                els.pause.classList.add('hidden'); startTimer(false); // Resume
+                els.pause.classList.add('hidden'); 
+                startTimer(false);
             }
         }
 
         function backToMenu() {
-            state.isPaused = false; clearInterval(state.timer);
-            els.game.classList.add('hidden'); els.pause.classList.add('hidden'); els.result.classList.add('hidden');
+            state.isPaused = false; 
+            if(window.speechSynthesis) window.speechSynthesis.cancel();
+            clearInterval(state.timer);
+            els.game.classList.add('hidden'); 
+            els.pause.classList.add('hidden'); 
+            els.result.classList.add('hidden');
             els.menu.classList.remove('hidden');
         }
         
@@ -280,30 +301,49 @@
 
         function nextQuestion() {
             if (state.currentQ >= config.totalQ) { endGame(true); return; }
-            state.currentQ++; state.isAnswering = false; els.count.innerText = `${config.totalQ - state.currentQ + 1}`;
+            state.currentQ++; 
+            state.isAnswering = false; 
+            els.count.innerText = `${config.totalQ - state.currentQ + 1}`;
+            
             els.monster.src = BASE_URL + IMAGES.monsters[Math.floor(Math.random() * IMAGES.monsters.length)];
-            els.monster.classList.remove('monster-hit'); els.boom.classList.remove('boom-anim');
+            els.monster.classList.remove('monster-hit'); 
+            els.boom.classList.remove('boom-anim');
             
             let n1, n2, pool;
             const seeds = { 1: [2, 5, 10], 2: [3, 4, 6], 3: [7, 8, 9], 4: [2,3,4,5,6,7,8,9] };
-            pool = seeds[state.level]; n1 = pool[Math.floor(Math.random() * pool.length)]; n2 = Math.floor(Math.random() * 9) + 1;
+            pool = seeds[state.level]; 
+            n1 = pool[Math.floor(Math.random() * pool.length)]; 
+            n2 = Math.floor(Math.random() * 9) + 1;
+            
             if (Math.random() > 0.5) [n1, n2] = [n2, n1];
             
-            state.answer = n1 * n2; els.qText.innerText = `${n1} x ${n2}`;
-            generateOptions(state.answer); startTimer(true);
+            state.answer = n1 * n2; 
+            els.qText.innerHTML = `${n1} &times; ${n2}`;
+            
+            generateOptions(state.answer); 
+            startTimer(true);
+
+            // 出題時進行語音朗讀
+            speakQuestion(n1, n2);
         }
 
         function generateOptions(ans) {
             let opts = new Set([ans]);
             while(opts.size < 4) {
-                let offset = Math.floor(Math.random() * 5) + 1; let fake = Math.random() > 0.5 ? ans + offset : ans - offset;
-                if(fake > 0) opts.add(fake);
+                let offset = Math.floor(Math.random() * 5) + 1; 
+                let fake = Math.random() > 0.5 ? ans + offset : ans - offset;
+                if(fake > 0 && fake !== ans) opts.add(fake);
+                else opts.add(ans + Math.floor(Math.random()*10)+1);
             }
             let arr = Array.from(opts).sort(() => Math.random() - 0.5);
             els.options.innerHTML = '';
             arr.forEach(n => {
-                let btn = document.createElement('button'); btn.className = 'opt-btn'; btn.innerText = n;
-                btn.onclick = () => checkAnswer(n, btn); els.options.appendChild(btn);
+                let btn = document.createElement('button'); 
+                btn.className = 'opt-btn'; 
+                btn.innerText = n;
+                // 使用 pointerdown 提供手機/桌面極速反應
+                btn.addEventListener('pointerdown', (e) => checkAnswer(n, e.target));
+                els.options.appendChild(btn);
             });
         }
 
@@ -313,7 +353,8 @@
             updateTimerBar();
             state.timer = setInterval(() => {
                 if(state.isPaused) return;
-                state.timeLeft -= 0.1; updateTimerBar();
+                state.timeLeft -= 0.1; 
+                updateTimerBar();
                 if (state.timeLeft <= 0) { clearInterval(state.timer); timeOut(); }
             }, 100);
         }
@@ -321,51 +362,98 @@
         function updateTimerBar() {
             let pct = (state.timeLeft / config.baseTime) * 100;
             els.timerBar.style.transform = `scaleX(${pct / 100})`;
-            if(pct < 30) { els.timerBar.style.background = '#ff0000'; document.body.classList.add('critical-alarm'); } 
-            else { els.timerBar.style.background = 'linear-gradient(90deg, #f0932b, #eb4d4b)'; document.body.classList.remove('critical-alarm'); }
+            if(pct < 30) { 
+                els.timerBar.style.background = '#ff0000'; 
+                document.body.classList.add('critical-alarm'); 
+            } else { 
+                els.timerBar.style.background = 'linear-gradient(90deg, #f0932b, #eb4d4b)'; 
+                document.body.classList.remove('critical-alarm'); 
+            }
         }
 
         function checkAnswer(val, btn) {
             if (state.isAnswering || state.isPaused) return;
-            state.isAnswering = true; clearInterval(state.timer); document.body.classList.remove('critical-alarm');
+            state.isAnswering = true; 
+            clearInterval(state.timer); 
+            document.body.classList.remove('critical-alarm');
+
             if (val === state.answer) {
-                state.combo++; if (state.combo > state.maxCombo) state.maxCombo = state.combo;
+                state.combo++; 
+                if (state.combo > state.maxCombo) state.maxCombo = state.combo;
                 let timeBonus = Math.floor(state.timeLeft * 10);
-                state.score += (100 + (state.combo * 20) + timeBonus); els.score.innerText = state.score;
+                state.score += (100 + (state.combo * 20) + timeBonus); 
+                els.score.innerText = state.score;
+                
                 btn.style.background = "#2ecc71";
                 els.hero.classList.remove('hero-shoot'); void els.hero.offsetWidth; els.hero.classList.add('hero-shoot');
-                setTimeout(() => { els.monster.classList.add('monster-hit'); els.boom.classList.add('boom-anim'); }, 300);
+                
+                setTimeout(() => { 
+                    els.monster.classList.add('monster-hit'); 
+                    els.boom.classList.add('boom-anim'); 
+                }, 200);
+
                 if (state.combo > 1) {
                     els.combo.innerText = `COMBO x${state.combo}!`;
                     els.combo.classList.remove('combo-active'); void els.combo.offsetWidth; els.combo.classList.add('combo-active');
-                    speak(state.combo % 5 === 0 ? "太強了！" : "漂亮！");
-                } else speak("發射！");
-                setTimeout(nextQuestion, 1200);
+                    speakText(state.combo % 5 === 0 ? "太強了！" : "漂亮！");
+                } else {
+                    speakText("答對了！");
+                }
+                setTimeout(nextQuestion, 1000);
             } else {
-                btn.style.background = "#e74c3c"; state.combo = 0; els.combo.innerText = ""; speak("喔喔...");
+                btn.style.background = "#e74c3c"; 
+                state.combo = 0; 
+                els.combo.innerText = ""; 
+                speakText("再試一次");
+
+                // 答錯高亮顯示正確答案
+                Array.from(els.options.children).forEach(b => {
+                    if (parseInt(b.innerText) === state.answer) {
+                        b.style.background = "#2ecc71";
+                    }
+                });
+
                 document.body.animate([{transform:'translateX(0)'},{transform:'translateX(-10px)'},{transform:'translateX(10px)'},{transform:'translateX(0)'}], {duration:300});
-                setTimeout(nextQuestion, 1500);
+                setTimeout(nextQuestion, 1400);
             }
         }
 
         function timeOut() {
-            state.combo = 0; els.combo.innerText = ""; speak("時間到！");
+            state.combo = 0; 
+            els.combo.innerText = ""; 
+            speakText("時間到！");
             document.body.classList.remove('critical-alarm');
-            Array.from(els.options.children).forEach(b => b.style.opacity = 0.5);
-            setTimeout(nextQuestion, 1500);
+            
+            // 時間到亮出答案
+            Array.from(els.options.children).forEach(b => {
+                if (parseInt(b.innerText) === state.answer) {
+                    b.style.background = "#2ecc71";
+                } else {
+                    b.style.opacity = "0.5";
+                }
+            });
+            setTimeout(nextQuestion, 1400);
         }
 
         function endGame(completed) {
-            els.game.classList.add('hidden'); els.result.classList.remove('hidden');
-            els.finalScore.innerText = state.score; els.maxComboText.innerText = `最大連擊數: ${state.maxCombo}`;
+            els.game.classList.add('hidden'); 
+            els.result.classList.remove('hidden');
+            els.finalScore.innerText = state.score; 
+            els.maxComboText.innerText = `最大連擊數: ${state.maxCombo}`;
+            
             if (state.score > 2000) {
-                els.resultTitle.innerText = "傳說級反應爐！"; els.resultTitle.style.color = "#f1c40f"; els.resultImg.src = BASE_URL + IMAGES.win;
-                speak("任務大成功！你是數學戰神！");
+                els.resultTitle.innerText = "傳說級反應爐！"; 
+                els.resultTitle.style.color = "#f1c40f"; 
+                els.resultImg.src = BASE_URL + IMAGES.win;
+                speakText("任務大成功！你是速算高手！");
             } else {
-                els.resultTitle.innerText = "特訓結束"; els.resultTitle.style.color = "#fff"; els.resultImg.src = BASE_URL + IMAGES.lose;
-                speak("特訓結束，下次會更好！");
+                els.resultTitle.innerText = "特訓結束"; 
+                els.resultTitle.style.color = "#fff"; 
+                els.resultImg.src = BASE_URL + IMAGES.lose;
+                speakText("特訓結束，繼續加油！");
             }
         }
+
         init();
     </script>
 </body>
