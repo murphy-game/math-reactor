@@ -11,7 +11,6 @@
             --accent-cyan: #38bdf8;
             --accent-green: #4ade80;
             --accent-yellow: #facc15;
-            --accent-pink: #f472b6;
             --text-color: #f8fafc;
             --btn-bg: #334155;
         }
@@ -20,23 +19,17 @@
 
         body {
             font-family: "Chalkboard SE", "Comic Sans MS", "微軟正黑體", sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0; padding: 0;
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; min-height: 100dvh;
-            overflow: hidden;
+            background-color: var(--bg-color); color: var(--text-color);
+            margin: 0; padding: 0; display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; min-height: 100dvh; overflow: hidden;
         }
 
         .app-container {
             width: 100%; max-width: 420px; height: 100vh; height: 100dvh;
             display: flex; flex-direction: column; justify-content: space-between;
-            padding: 10px 15px;
-            padding-bottom: max(12px, env(safe-area-inset-bottom));
-            position: relative;
+            padding: 10px 15px; padding-bottom: max(12px, env(safe-area-inset-bottom)); position: relative;
         }
 
-        /* 頂部 HUD */
         .hud {
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(30, 41, 59, 0.8); padding: 6px 12px; border-radius: 16px;
@@ -48,17 +41,13 @@
             color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 0.95rem;
             cursor: pointer; display: flex; justify-content: center; align-items: center;
         }
+
         .score-box { text-align: right; }
         .score-box div { font-size: 0.65rem; color: #94a3b8; }
         .score-box span { font-size: 0.95rem; font-weight: bold; color: var(--accent-cyan); }
-        .score-box .high-score { color: var(--accent-yellow); margin-right: 4px; }
 
-        .progress-text {
-            text-align: center; font-size: 0.85rem; color: var(--accent-yellow);
-            font-weight: bold; margin: 4px 0;
-        }
+        .progress-text { text-align: center; font-size: 0.85rem; color: var(--accent-yellow); font-weight: bold; margin: 4px 0; }
 
-        /* 主遊戲區域 */
         .main-game-area {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             flex: 1; width: 100%; min-height: 0;
@@ -69,199 +58,173 @@
             filter: drop-shadow(0 4px 12px rgba(56, 189, 248, 0.4));
             animation: pulseReactor 2s ease-in-out infinite;
         }
-
         @keyframes pulseReactor {
             0%, 100% { transform: scale(1); filter: drop-shadow(0 4px 12px rgba(56, 189, 248, 0.4)); }
             50% { transform: scale(1.08); filter: drop-shadow(0 4px 20px rgba(56, 189, 248, 0.8)); }
         }
 
-        /* 乘法算式卡片 */
         .math-card {
             background: #0f172a; border: 3px solid var(--accent-cyan);
             border-radius: 20px; padding: 18px 40px; text-align: center;
-            box-shadow: 0 8px 25px rgba(56, 189, 248, 0.2);
-            margin-bottom: 10px; min-width: 220px;
+            box-shadow: 0 8px 25px rgba(56, 189, 248, 0.2); margin-bottom: 10px; min-width: 220px;
         }
+        .math-formula { font-size: 2.8rem; font-weight: bold; letter-spacing: 2px; color: #fff; line-height: 1.2; }
 
-        .math-formula {
-            font-size: 2.8rem; font-weight: bold; letter-spacing: 2px;
-            color: #fff; line-height: 1.2;
-        }
-
-        /* 4 個選項區域 */
-        .options-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: auto;
-        }
-
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: auto; }
         .opt-btn {
             background: var(--btn-bg); border: none; border-bottom: 5px solid #1e293b;
             border-radius: 16px; padding: 14px 0; font-size: 1.6rem; font-weight: bold;
             color: #fff; cursor: pointer; transition: all 0.08s ease;
-            display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         .opt-btn:active { transform: translateY(3px); border-bottom-width: 2px; background: #475569; }
         .opt-btn.correct { background: var(--accent-green) !important; color: #0f172a !important; }
         .opt-btn.wrong { background: #ef4444 !important; color: #fff !important; }
 
-        /* Modal 蓋板 */
         .modal {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(5px);
-            z-index: 100; display: flex; justify-content: center; align-items: center;
+            background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(5px);
+            z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;
         }
         .modal-card {
             background: var(--card-bg); border: 3px solid var(--accent-cyan);
             border-radius: 20px; padding: 20px; width: 85%; max-width: 320px; text-align: center;
         }
-        .start-btn {
-            background: linear-gradient(135deg, #38bdf8, #818cf8);
-            border: none; border-bottom: 4px solid #0284c7; color: #fff;
-            font-size: 1.2rem; font-weight: bold; padding: 12px 25px; border-radius: 50px;
-            margin-top: 15px; cursor: pointer; width: 100%;
+        .menu-btn {
+            background: transparent; border: 2px solid var(--accent-cyan);
+            color: white; padding: 12px 20px; margin: 8px 0; font-size: 1.1rem; font-weight: bold;
+            border-radius: 50px; cursor: pointer; width: 100%; transition: all 0.2s;
         }
-        .start-btn:active { transform: translateY(2px); border-bottom-width: 2px; }
+        .menu-btn:active { transform: scale(0.95); background: var(--accent-cyan); color: #000; }
+        .level-tag { font-size: 0.8rem; opacity: 0.8; display: block; margin-top: 2px; color: var(--accent-yellow); }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <!-- 頂部 HUD -->
         <div class="hud">
             <div class="hud-btn-group">
-                <button class="hud-icon-btn" id="sound-btn" onclick="toggleSound()" title="音效開關">🔊</button>
-                <button class="hud-icon-btn" id="vibrate-btn" onclick="toggleVibrate()" title="震動開關">📳</button>
-                <button class="hud-icon-btn" onclick="togglePause()" title="暫停遊戲">⏸️</button>
+                <button class="hud-icon-btn" id="sound-btn" onclick="toggleSound()">🔊</button>
+                <button class="hud-icon-btn" id="vibrate-btn" onclick="toggleVibrate()">📳</button>
+                <button class="hud-icon-btn" onclick="openLevelSelect()">⚙️</button>
+                <button class="hud-icon-btn" onclick="togglePause()">⏸️</button>
             </div>
             <div class="score-box">
-                <div>BEST: <span id="high-score" class="high-score">0</span></div>
+                <div>BEST: <span id="high-score">0</span></div>
                 <div>SCORE: <span id="score">0</span></div>
             </div>
         </div>
 
         <div class="progress-text">反應爐進度：<span id="current-q-num">1</span> / 25</div>
 
-        <!-- 主遊戲區域 -->
         <div class="main-game-area">
             <div class="reactor-avatar">⚛️</div>
-
-            <!-- 乘法算式卡片 -->
             <div class="math-card">
                 <div class="math-formula"><span id="num-a">7</span> × <span id="num-b">8</span></div>
             </div>
         </div>
 
-        <!-- 4 個選項區域 -->
         <div class="options-grid" id="options-grid"></div>
+
+        <!-- 難度選擇 Modal -->
+        <div id="level-modal" class="modal">
+            <div class="modal-card">
+                <div style="font-size: 3rem; margin-bottom: 5px;">⚛️</div>
+                <h2 style="color:var(--accent-cyan); margin: 5px 0;">乘法速算特訓</h2>
+                <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:12px;">請選擇訓練難度</p>
+                <button class="menu-btn" onclick="selectDifficulty(1)">🟢 見習駕駛 <span class="level-tag">專攻 2, 3, 4, 5 的乘法</span></button>
+                <button class="menu-btn" onclick="selectDifficulty(2)">🟡 正式隊員 <span class="level-tag">專攻 6, 7, 8, 9 的乘法</span></button>
+                <button class="menu-btn" onclick="selectDifficulty(3)">🔴 王牌機師 <span class="level-tag">2~9 全範圍速算大亂鬥</span></button>
+            </div>
+        </div>
 
         <!-- 結算/暫停 Modal -->
         <div id="game-modal" class="modal hidden">
             <div class="modal-card">
                 <div style="font-size: 3.5rem; margin-bottom: 10px;" id="modal-icon">⚛️</div>
                 <h2 id="modal-title" style="color:var(--accent-cyan); margin: 5px 0;">反應爐充能完成</h2>
-                <p id="modal-desc" style="color:#94a3b8; font-size:0.9rem; margin-bottom:15px;">本次訓練得分：0</p>
-                <button class="start-btn" onclick="startGame()">開始速算特訓 ⚡</button>
+                <p id="modal-desc" style="color:#94a3b8; font-size:0.9rem; margin-bottom:15px;">本次得分：0</p>
+                <button class="menu-btn" style="background:var(--accent-cyan); color:#000;" onclick="openLevelSelect()">重新選擇難度 ⚡</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Web Audio API 音效與觸控震動控制
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
-        let soundEnabled = true;
-        let vibrateEnabled = true;
+        let soundEnabled = true, vibrateEnabled = true;
 
-        function initAudio() {
-            if (!audioCtx) audioCtx = new AudioContext();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        }
-
-        function triggerVibrate(ms = 40) {
-            if (vibrateEnabled && navigator.vibrate) {
-                navigator.vibrate(ms);
-            }
-        }
+        function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+        function triggerVibrate(ms = 40) { if (vibrateEnabled && navigator.vibrate) navigator.vibrate(ms); }
 
         function playSound(type) {
-            if (!soundEnabled) return;
-            initAudio();
-            if (!audioCtx) return;
-
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            if (!soundEnabled) return; initAudio(); if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
             const now = audioCtx.currentTime;
 
             if (type === 'correct') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(523.25, now);
-                osc.frequency.setValueAtTime(659.25, now + 0.08);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.08);
+                gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
                 osc.start(now); osc.stop(now + 0.2);
             } else if (type === 'wrong') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(220, now);
-                osc.frequency.linearRampToValueAtTime(110, now + 0.25);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, now); osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
                 osc.start(now); osc.stop(now + 0.25);
             }
         }
 
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            document.getElementById('sound-btn').innerText = soundEnabled ? '🔊' : '🔇';
-        }
+        function toggleSound() { soundEnabled = !soundEnabled; document.getElementById('sound-btn').innerText = soundEnabled ? '🔊' : '🔇'; }
+        function toggleVibrate() { vibrateEnabled = !vibrateEnabled; document.getElementById('vibrate-btn').innerText = vibrateEnabled ? '📳' : '📴'; if (vibrateEnabled) triggerVibrate(30); }
 
-        function toggleVibrate() {
-            vibrateEnabled = !vibrateEnabled;
-            document.getElementById('vibrate-btn').innerText = vibrateEnabled ? '📳' : '📴';
-            if (vibrateEnabled) triggerVibrate(30);
-        }
-
-        let currentQuestion = 0;
-        let totalQuestions = 25;
-        let score = 0;
+        let currentDifficulty = 1;
+        let currentQuestion = 0, totalQuestions = 25, score = 0;
         let highScore = parseInt(localStorage.getItem('reactor_high_score')) || 0;
-        let correctAnswer = 0;
-        let isAnsweringLocked = false;
+        let correctAnswer = 0, isAnsweringLocked = false;
+
+        function selectDifficulty(diff) {
+            currentDifficulty = diff;
+            document.getElementById('level-modal').classList.add('hidden');
+            startGame();
+        }
+
+        function openLevelSelect() {
+            document.getElementById('game-modal').classList.add('hidden');
+            document.getElementById('level-modal').classList.remove('hidden');
+        }
 
         function generateQuestion() {
             isAnsweringLocked = false;
-            let numA = Math.floor(Math.random() * 8) + 2; // 2 ~ 9
-            let numB = Math.floor(Math.random() * 8) + 2; // 2 ~ 9
-            correctAnswer = numA * numB;
+            let numA, numB;
 
+            if (currentDifficulty === 1) { // 2~5
+                numA = Math.floor(Math.random() * 4) + 2; numB = Math.floor(Math.random() * 8) + 2;
+            } else if (currentDifficulty === 2) { // 6~9
+                numA = Math.floor(Math.random() * 4) + 6; numB = Math.floor(Math.random() * 8) + 2;
+            } else { // 2~9 全範圍
+                numA = Math.floor(Math.random() * 8) + 2; numB = Math.floor(Math.random() * 8) + 2;
+            }
+
+            correctAnswer = numA * numB;
             document.getElementById('num-a').innerText = numA;
             document.getElementById('num-b').innerText = numB;
             document.getElementById('current-q-num').innerText = currentQuestion + 1;
-
             generateOptions();
         }
 
         function generateOptions() {
-            const grid = document.getElementById('options-grid');
-            grid.innerHTML = '';
-
+            const grid = document.getElementById('options-grid'); grid.innerHTML = '';
             let options = [correctAnswer];
             while (options.length < 4) {
                 let offset = (Math.floor(Math.random() * 4) + 1) * (Math.random() > 0.5 ? 1 : -1);
                 let wrongOpt = correctAnswer + offset;
-                if (wrongOpt > 0 && !options.includes(wrongOpt)) {
-                    options.push(wrongOpt);
-                }
+                if (wrongOpt > 0 && !options.includes(wrongOpt)) options.push(wrongOpt);
             }
-
             options.sort(() => Math.random() - 0.5);
-
             options.forEach(opt => {
                 const btn = document.createElement('button');
-                btn.className = 'opt-btn';
-                btn.innerText = opt;
+                btn.className = 'opt-btn'; btn.innerText = opt;
                 btn.onclick = () => checkAnswer(opt, btn);
                 grid.appendChild(btn);
             });
@@ -269,27 +232,17 @@
 
         function checkAnswer(selected, btn) {
             if (isAnsweringLocked) return;
-
             if (selected === correctAnswer) {
-                isAnsweringLocked = true;
-                btn.classList.add('correct');
-                playSound('correct');
-                triggerVibrate(50);
-                score += 10;
-                document.getElementById('score').innerText = score;
-
+                isAnsweringLocked = true; btn.classList.add('correct');
+                playSound('correct'); triggerVibrate(50);
+                score += 10; document.getElementById('score').innerText = score;
                 setTimeout(() => {
                     currentQuestion++;
-                    if (currentQuestion >= totalQuestions) {
-                        endGame();
-                    } else {
-                        generateQuestion();
-                    }
+                    if (currentQuestion >= totalQuestions) endGame();
+                    else generateQuestion();
                 }, 400);
             } else {
-                btn.classList.add('wrong');
-                playSound('wrong');
-                triggerVibrate(100);
+                btn.classList.add('wrong'); playSound('wrong'); triggerVibrate(100);
                 setTimeout(() => btn.classList.remove('wrong'), 600);
             }
         }
@@ -303,23 +256,16 @@
 
         function endGame() {
             let isNewHigh = false;
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('reactor_high_score', highScore);
-                isNewHigh = true;
-            }
-
+            if (score > highScore) { highScore = score; localStorage.setItem('reactor_high_score', highScore); isNewHigh = true; }
             document.getElementById('modal-icon').innerText = isNewHigh ? "🏆" : "⚛️";
             document.getElementById('modal-title').innerText = isNewHigh ? "🎉 突破新紀錄！" : "反應爐充能完成！";
-            document.getElementById('modal-desc').innerText = `最終總分：${score} (最高紀錄: ${highScore})`;
+            document.getElementById('modal-desc').innerText = `最終得分：${score} (最高紀錄: ${highScore})`;
             document.getElementById('game-modal').classList.remove('hidden');
             updateScoreUI();
         }
 
         function startGame() {
-            initAudio();
-            currentQuestion = 0;
-            score = 0;
+            initAudio(); currentQuestion = 0; score = 0;
             updateScoreUI();
             document.getElementById('game-modal').classList.add('hidden');
             generateQuestion();
@@ -331,7 +277,6 @@
         }
 
         updateScoreUI();
-        generateQuestion();
     </script>
 </body>
 </html>
