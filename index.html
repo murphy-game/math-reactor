@@ -11,6 +11,7 @@
             --accent-cyan: #38bdf8;
             --accent-green: #4ade80;
             --accent-yellow: #facc15;
+            --accent-red: #ff7675;
             --text-color: #f8fafc;
             --btn-bg: #334155;
         }
@@ -20,12 +21,19 @@
         body {
             font-family: "Chalkboard SE", "Comic Sans MS", "微軟正黑體", sans-serif;
             background-color: var(--bg-color);
-            background-image: url('bg_reactor.png');
-            background-size: cover;
-            background-position: center;
             color: var(--text-color);
             margin: 0; padding: 0; display: flex; justify-content: center; align-items: center;
             min-height: 100vh; min-height: 100dvh; overflow: hidden;
+        }
+
+        /* 雙層背景防呆：圖檔載入失敗自動退回科幻漸層 */
+        .battle-bg-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            overflow: hidden; pointer-events: none;
+        }
+        .battle-bg-img {
+            width: 100%; height: 100%; object-fit: cover; opacity: 0.65;
         }
 
         .app-container {
@@ -109,8 +117,16 @@
         .modal-card {
             background: var(--card-bg); border: 3px solid var(--accent-cyan);
             border-radius: 20px; padding: 20px; width: 85%; max-width: 320px; text-align: center;
-            box-shadow: 0 10px 30px rgba(56, 189, 248, 0.3);
+            box-shadow: 0 10px 30px rgba(56, 189, 248, 0.3); transition: border-color 0.3s;
         }
+
+        .modal-card.lose-theme {
+            border-color: var(--accent-red);
+            box-shadow: 0 10px 30px rgba(255, 118, 117, 0.4);
+            animation: pulseRed 1.5s infinite;
+        }
+        @keyframes pulseRed { 0%, 100% { border-color: var(--accent-red); } 50% { border-color: #d63031; } }
+
         .menu-btn {
             background: transparent; border: 2px solid var(--accent-cyan);
             color: white; padding: 12px 20px; margin: 8px 0; font-size: 1.1rem; font-weight: bold;
@@ -122,6 +138,11 @@
     </style>
 </head>
 <body>
+
+    <!-- 雙層背景容器 -->
+    <div class="battle-bg-container">
+        <img src="bg_reactor.png" class="battle-bg-img" onerror="this.style.display='none';">
+    </div>
 
     <div class="app-container">
         <div class="hud">
@@ -178,15 +199,29 @@
             </div>
         </div>
 
+        <!-- 結算 Modal -->
         <div id="game-modal" class="modal hidden">
-            <div class="modal-card">
-                <div style="height: 100px; display:flex; justify-content:center; align-items:center; margin-bottom:10px;">
+            <div class="modal-card" id="result-modal-card">
+                <div style="height: 110px; display:flex; justify-content:center; align-items:center; margin-bottom:10px;">
                     <img src="win.png" id="modal-result-img" style="max-height:100%; object-fit:contain;" onerror="this.style.display='none'; document.getElementById('modal-icon-emoji').style.display='block';">
-                    <span id="modal-icon-emoji" style="font-size:3.5rem; display:none;">🏆</span>
+                    <span id="modal-icon-emoji" style="font-size:4.5rem; display:none;">🏆</span>
                 </div>
                 <h2 id="modal-title" style="color:var(--accent-cyan); margin: 5px 0;">反應爐充能完成</h2>
                 <p id="modal-desc" style="color:#94a3b8; font-size:0.9rem; margin-bottom:15px;">本次得分：0</p>
-                <button class="menu-btn" style="background:var(--accent-cyan); color:#000;" onclick="openLevelSelect()">重新選擇難度 ⚡</button>
+                <button class="menu-btn" id="result-confirm-btn" style="background:var(--accent-cyan); color:#000;" onclick="openLevelSelect()">重新選擇難度 ⚡</button>
+            </div>
+        </div>
+
+        <!-- 15 分鐘防成癮冷卻 Modal -->
+        <div id="cooldown-modal" class="modal hidden">
+            <div class="modal-card" style="border-color:#ff7675;">
+                <div style="font-size:3.5rem; margin-bottom:10px;">🛑</div>
+                <h2 style="color:#ff7675; margin: 5px 0;">機甲過熱冷卻中</h2>
+                <p style="color:#ccc; font-size:0.85rem; line-height:1.5; margin-bottom:15px;">
+                    駕駛員請注意！您已連續練習滿 15 分鐘。<br>系統已啟動保護機制，請起身活動身體、看看遠方！
+                </p>
+                <div style="font-size:2.5rem; font-weight:bold; color:var(--accent-yellow); margin-bottom:15px;" id="cooldown-timer">05:00</div>
+                <button class="menu-btn" style="border-color:#555; color:#888; cursor:not-allowed;" disabled>維修冷卻中...</button>
             </div>
         </div>
     </div>
@@ -198,6 +233,7 @@
 
         const monsterImages = ['m1.png', 'm2.png', 'm3.png', 'm4.png', 'm5.png'];
         const monsterEmojis = ['🐲', '🕷️', '🫠', '🗿', '🪴'];
+        let lastMonsterIndex = -1; // 記錄上一隻出現的怪獸，避免連續重複
 
         function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
         function triggerVibrate(ms = 40) { if (vibrateEnabled && navigator.vibrate) navigator.vibrate(ms); }
@@ -222,11 +258,46 @@
         function toggleSound() { soundEnabled = !soundEnabled; document.getElementById('sound-btn').innerText = soundEnabled ? '🔊' : '🔇'; }
         function toggleVibrate() { vibrateEnabled = !vibrateEnabled; document.getElementById('vibrate-btn').innerText = vibrateEnabled ? '📳' : '📴'; if (vibrateEnabled) triggerVibrate(30); }
 
+        // --- 15 分鐘防成癮冷卻機制 ---
+        let playTimeSeconds = 0;
+        let cooldownSecondsLeft = 300; // 5 分鐘
+        let cooldownInterval = null;
+
+        setInterval(() => {
+            playTimeSeconds++;
+            if (playTimeSeconds >= 900 && !cooldownInterval) { // 900秒 = 15 分鐘
+                triggerCooldown();
+            }
+        }, 1000);
+
+        function triggerCooldown() {
+            document.getElementById('cooldown-modal').classList.remove('hidden');
+            cooldownSecondsLeft = 300;
+            updateCooldownUI();
+
+            cooldownInterval = setInterval(() => {
+                cooldownSecondsLeft--;
+                updateCooldownUI();
+                if (cooldownSecondsLeft <= 0) {
+                    clearInterval(cooldownInterval);
+                    cooldownInterval = null;
+                    playTimeSeconds = 0;
+                    document.getElementById('cooldown-modal').classList.add('hidden');
+                }
+            }, 1000);
+        }
+
+        function updateCooldownUI() {
+            const m = Math.floor(cooldownSecondsLeft / 60).toString().padStart(2, '0');
+            const s = (cooldownSecondsLeft % 60).toString().padStart(2, '0');
+            document.getElementById('cooldown-timer').innerText = `${m}:${s}`;
+        }
+
         let currentDifficulty = 1;
         let currentQuestion = 0, totalQuestions = 25, score = 0;
         let highScore = parseInt(localStorage.getItem('reactor_high_score')) || 0;
         let correctAnswer = 0, isAnsweringLocked = false;
-        let questionPool = []; // 洗牌不放回題庫
+        let questionPool = [];
 
         function selectDifficulty(diff) {
             currentDifficulty = diff;
@@ -239,7 +310,7 @@
             document.getElementById('level-modal').classList.remove('hidden');
         }
 
-        // 生成九九乘法表對應難度的所有算式並打亂（絕不重複）
+        // Fisher-Yates 隨機洗牌演算法（零重複保證）
         function buildQuestionPool() {
             const raw = [];
             let startA = 2, endA = 5;
@@ -252,8 +323,12 @@
                     raw.push({ a, b, ans: a * b });
                 }
             }
-            // 完全打亂
-            questionPool = raw.sort(() => Math.random() - 0.5);
+            // 完全洗牌打亂
+            for (let i = raw.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [raw[i], raw[j]] = [raw[j], raw[i]];
+            }
+            questionPool = raw;
         }
 
         function generateQuestion() {
@@ -267,8 +342,13 @@
             document.getElementById('num-b').innerText = q.b;
             document.getElementById('current-q-num').innerText = currentQuestion + 1;
 
-            // 隨機更換登場怪獸
-            const mIndex = Math.floor(Math.random() * monsterImages.length);
+            // 避開連續重複登場怪獸邏輯
+            let mIndex;
+            do {
+                mIndex = Math.floor(Math.random() * monsterImages.length);
+            } while (mIndex === lastMonsterIndex && monsterImages.length > 1);
+            lastMonsterIndex = mIndex;
+
             const mImg = document.getElementById('monster-img');
             const mEmoji = document.getElementById('emoji-monster');
             
@@ -323,11 +403,15 @@
         }
 
         function togglePause() {
+            const modalContainer = document.getElementById('result-modal-card');
             const resultImg = document.getElementById('modal-result-img');
             const fallbackEmoji = document.getElementById('modal-icon-emoji');
+            
+            modalContainer.classList.remove('lose-theme');
             resultImg.src = 'hero.png'; resultImg.style.display = 'block';
             fallbackEmoji.innerText = "⚛️"; fallbackEmoji.style.display = 'none';
 
+            document.getElementById('modal-title').style.color = "var(--accent-cyan)";
             document.getElementById('modal-title').innerText = "速算特訓暫停中";
             document.getElementById('modal-desc').innerText = `當前進度：${currentQuestion + 1} / ${totalQuestions}`;
             document.getElementById('game-modal').classList.remove('hidden');
@@ -337,14 +421,30 @@
             let isNewHigh = false;
             if (score > highScore) { highScore = score; localStorage.setItem('reactor_high_score', highScore); isNewHigh = true; }
             
+            const modalContainer = document.getElementById('result-modal-card');
             const resultImg = document.getElementById('modal-result-img');
             const fallbackEmoji = document.getElementById('modal-icon-emoji');
+            const confirmBtn = document.getElementById('result-confirm-btn');
+            
             resultImg.style.display = 'block'; fallbackEmoji.style.display = 'none';
 
-            if (isNewHigh || score >= 200) { resultImg.src = 'win.png'; fallbackEmoji.innerText = "🏆"; }
-            else { resultImg.src = 'lose.png'; fallbackEmoji.innerText = "💥"; }
+            if (isNewHigh || score >= 200) {
+                modalContainer.classList.remove('lose-theme');
+                resultImg.src = 'win.png'; fallbackEmoji.innerText = "🏆";
+                document.getElementById('modal-title').style.color = "var(--accent-cyan)";
+                document.getElementById('modal-title').innerText = isNewHigh ? "🎉 突破新紀錄！" : "⚡ 怪獸全數擊退！";
+                confirmBtn.style.background = "var(--accent-cyan)";
+                confirmBtn.innerText = "再次挑戰 ⚡";
+            } else {
+                modalContainer.classList.add('lose-theme');
+                resultImg.src = 'lose.png'; fallbackEmoji.innerText = "💥";
+                document.getElementById('modal-title').style.color = "var(--accent-red)";
+                document.getElementById('modal-title').innerText = "💥 機甲反應爐過載！";
+                confirmBtn.style.background = "var(--accent-red)";
+                confirmBtn.innerText = "重新維修 🛠️";
+                playSound('wrong'); triggerVibrate(150);
+            }
 
-            document.getElementById('modal-title').innerText = isNewHigh ? "🎉 突破新紀錄！" : (score >= 200 ? "⚡ 怪獸全數擊退！" : "💥 機甲反應爐過載！");
             document.getElementById('modal-desc').innerText = `最終得分：${score} (最高紀錄: ${highScore})`;
             document.getElementById('game-modal').classList.remove('hidden');
             updateScoreUI();
@@ -352,6 +452,7 @@
 
         function startGame() {
             initAudio(); currentQuestion = 0; score = 0;
+            lastMonsterIndex = -1;
             buildQuestionPool();
             updateScoreUI();
             document.getElementById('game-modal').classList.add('hidden');
