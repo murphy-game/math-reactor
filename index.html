@@ -7,7 +7,7 @@
     <style>
         :root {
             --bg-color: #0f172a;
-            --card-bg: #1e293b;
+            --card-bg: rgba(30, 41, 59, 0.9);
             --accent-cyan: #38bdf8;
             --accent-green: #4ade80;
             --accent-yellow: #facc15;
@@ -19,7 +19,11 @@
 
         body {
             font-family: "Chalkboard SE", "Comic Sans MS", "微軟正黑體", sans-serif;
-            background-color: var(--bg-color); color: var(--text-color);
+            background-color: var(--bg-color);
+            background-image: url('bg_reactor.png');
+            background-size: cover;
+            background-position: center;
+            color: var(--text-color);
             margin: 0; padding: 0; display: flex; justify-content: center; align-items: center;
             min-height: 100vh; min-height: 100dvh; overflow: hidden;
         }
@@ -32,7 +36,7 @@
 
         .hud {
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(30, 41, 59, 0.8); padding: 6px 12px; border-radius: 16px;
+            background: rgba(30, 41, 59, 0.85); padding: 6px 12px; border-radius: 16px;
             border: 1px solid rgba(56, 189, 248, 0.3); backdrop-filter: blur(5px);
         }
         .hud-btn-group { display: flex; gap: 6px; }
@@ -50,25 +54,41 @@
 
         .main-game-area {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            flex: 1; width: 100%; min-height: 0;
+            flex: 1; width: 100%; min-height: 0; position: relative;
         }
 
-        .reactor-avatar {
-            font-size: 3.5rem; line-height: 1; margin-bottom: 5px;
-            filter: drop-shadow(0 4px 12px rgba(56, 189, 248, 0.4));
-            animation: pulseReactor 2s ease-in-out infinite;
+        .battle-stage {
+            display: flex; justify-content: space-around; align-items: center;
+            width: 100%; max-width: 320px; height: 110px; position: relative; margin-bottom: 5px;
         }
-        @keyframes pulseReactor {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 4px 12px rgba(56, 189, 248, 0.4)); }
-            50% { transform: scale(1.08); filter: drop-shadow(0 4px 20px rgba(56, 189, 248, 0.8)); }
+        .hero-box, .monster-box {
+            position: relative; width: 95px; height: 95px;
+            display: flex; justify-content: center; align-items: center;
         }
+        .hero-img, .monster-img {
+            max-width: 100%; max-height: 100%; object-fit: contain;
+            filter: drop-shadow(0 4px 10px rgba(56, 189, 248, 0.4));
+        }
+        .hero-img { animation: floatHero 2.5s ease-in-out infinite; }
+        @keyframes floatHero { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        .monster-img { animation: pulseMonster 1.8s ease-in-out infinite; }
+        @keyframes pulseMonster { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        .boom-effect {
+            position: absolute; top: 50%; right: 10px; transform: translate(0, -50%) scale(0);
+            width: 140px; height: 140px; pointer-events: none; opacity: 0; z-index: 10;
+            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .boom-effect.active { transform: translate(0, -50%) scale(1.2); opacity: 1; }
 
         .math-card {
-            background: #0f172a; border: 3px solid var(--accent-cyan);
-            border-radius: 20px; padding: 18px 40px; text-align: center;
-            box-shadow: 0 8px 25px rgba(56, 189, 248, 0.2); margin-bottom: 10px; min-width: 220px;
+            background: rgba(15, 23, 42, 0.9); border: 3px solid var(--accent-cyan);
+            border-radius: 20px; padding: 16px 40px; text-align: center;
+            box-shadow: 0 8px 25px rgba(56, 189, 248, 0.25); margin-bottom: 8px; min-width: 220px;
         }
-        .math-formula { font-size: 2.8rem; font-weight: bold; letter-spacing: 2px; color: #fff; line-height: 1.2; }
+        .math-formula { font-size: 2.6rem; font-weight: bold; letter-spacing: 2px; color: #fff; line-height: 1.2; }
 
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: auto; }
         .opt-btn {
@@ -89,6 +109,7 @@
         .modal-card {
             background: var(--card-bg); border: 3px solid var(--accent-cyan);
             border-radius: 20px; padding: 20px; width: 85%; max-width: 320px; text-align: center;
+            box-shadow: 0 10px 30px rgba(56, 189, 248, 0.3);
         }
         .menu-btn {
             background: transparent; border: 2px solid var(--accent-cyan);
@@ -119,7 +140,23 @@
         <div class="progress-text">反應爐進度：<span id="current-q-num">1</span> / 25</div>
 
         <div class="main-game-area">
-            <div class="reactor-avatar">⚛️</div>
+            <div class="battle-stage">
+                <div class="hero-box">
+                    <img src="hero.png" class="hero-img" id="hero-img" onerror="this.style.display='none'; document.getElementById('emoji-hero').style.display='block';">
+                    <span id="emoji-hero" style="font-size:3.5rem; display:none;">🤖</span>
+                </div>
+                <div style="font-size:1.5rem; font-weight:bold; color:var(--accent-yellow);">VS</div>
+                <div class="monster-box">
+                    <img src="m1.png" class="monster-img" id="monster-img" onerror="this.style.display='none'; document.getElementById('emoji-monster').style.display='block';">
+                    <span id="emoji-monster" style="font-size:3.5rem; display:none;">👾</span>
+                </div>
+
+                <div id="boom-box" class="boom-effect">
+                    <img src="boom.png" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none'; document.getElementById('emoji-boom').style.display='block';">
+                    <span id="emoji-boom" style="font-size:4rem; display:none;">💥</span>
+                </div>
+            </div>
+
             <div class="math-card">
                 <div class="math-formula"><span id="num-a">7</span> × <span id="num-b">8</span></div>
             </div>
@@ -127,10 +164,12 @@
 
         <div class="options-grid" id="options-grid"></div>
 
-        <!-- 難度選擇 Modal -->
         <div id="level-modal" class="modal">
             <div class="modal-card">
-                <div style="font-size: 3rem; margin-bottom: 5px;">⚛️</div>
+                <div style="height: 80px; display:flex; justify-content:center; align-items:center; margin-bottom:10px;">
+                    <img src="hero.png" style="max-height:100%; object-fit:contain;" onerror="this.style.display='none'; document.getElementById('modal-emoji').style.display='block';">
+                    <span id="modal-emoji" style="font-size:3.5rem; display:none;">⚛️</span>
+                </div>
                 <h2 style="color:var(--accent-cyan); margin: 5px 0;">乘法速算特訓</h2>
                 <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:12px;">請選擇訓練難度</p>
                 <button class="menu-btn" onclick="selectDifficulty(1)">🟢 見習駕駛 <span class="level-tag">專攻 2, 3, 4, 5 的乘法</span></button>
@@ -139,10 +178,12 @@
             </div>
         </div>
 
-        <!-- 結算/暫停 Modal -->
         <div id="game-modal" class="modal hidden">
             <div class="modal-card">
-                <div style="font-size: 3.5rem; margin-bottom: 10px;" id="modal-icon">⚛️</div>
+                <div style="height: 100px; display:flex; justify-content:center; align-items:center; margin-bottom:10px;">
+                    <img src="win.png" id="modal-result-img" style="max-height:100%; object-fit:contain;" onerror="this.style.display='none'; document.getElementById('modal-icon-emoji').style.display='block';">
+                    <span id="modal-icon-emoji" style="font-size:3.5rem; display:none;">🏆</span>
+                </div>
                 <h2 id="modal-title" style="color:var(--accent-cyan); margin: 5px 0;">反應爐充能完成</h2>
                 <p id="modal-desc" style="color:#94a3b8; font-size:0.9rem; margin-bottom:15px;">本次得分：0</p>
                 <button class="menu-btn" style="background:var(--accent-cyan); color:#000;" onclick="openLevelSelect()">重新選擇難度 ⚡</button>
@@ -154,6 +195,9 @@
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
         let soundEnabled = true, vibrateEnabled = true;
+
+        const monsterImages = ['m1.png', 'm2.png', 'm3.png', 'm4.png', 'm5.png'];
+        const monsterEmojis = ['🐲', '🕷️', '🫠', '🗿', '🪴'];
 
         function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
         function triggerVibrate(ms = 40) { if (vibrateEnabled && navigator.vibrate) navigator.vibrate(ms); }
@@ -182,6 +226,7 @@
         let currentQuestion = 0, totalQuestions = 25, score = 0;
         let highScore = parseInt(localStorage.getItem('reactor_high_score')) || 0;
         let correctAnswer = 0, isAnsweringLocked = false;
+        let questionPool = []; // 洗牌不放回題庫
 
         function selectDifficulty(diff) {
             currentDifficulty = diff;
@@ -194,22 +239,44 @@
             document.getElementById('level-modal').classList.remove('hidden');
         }
 
+        // 生成九九乘法表對應難度的所有算式並打亂（絕不重複）
+        function buildQuestionPool() {
+            const raw = [];
+            let startA = 2, endA = 5;
+
+            if (currentDifficulty === 2) { startA = 6; endA = 9; }
+            else if (currentDifficulty === 3) { startA = 2; endA = 9; }
+
+            for (let a = startA; a <= endA; a++) {
+                for (let b = 2; b <= 9; b++) {
+                    raw.push({ a, b, ans: a * b });
+                }
+            }
+            // 完全打亂
+            questionPool = raw.sort(() => Math.random() - 0.5);
+        }
+
         function generateQuestion() {
             isAnsweringLocked = false;
-            let numA, numB;
+            if (questionPool.length === 0) buildQuestionPool();
 
-            if (currentDifficulty === 1) { // 2~5
-                numA = Math.floor(Math.random() * 4) + 2; numB = Math.floor(Math.random() * 8) + 2;
-            } else if (currentDifficulty === 2) { // 6~9
-                numA = Math.floor(Math.random() * 4) + 6; numB = Math.floor(Math.random() * 8) + 2;
-            } else { // 2~9 全範圍
-                numA = Math.floor(Math.random() * 8) + 2; numB = Math.floor(Math.random() * 8) + 2;
-            }
+            const q = questionPool.pop();
+            correctAnswer = q.ans;
 
-            correctAnswer = numA * numB;
-            document.getElementById('num-a').innerText = numA;
-            document.getElementById('num-b').innerText = numB;
+            document.getElementById('num-a').innerText = q.a;
+            document.getElementById('num-b').innerText = q.b;
             document.getElementById('current-q-num').innerText = currentQuestion + 1;
+
+            // 隨機更換登場怪獸
+            const mIndex = Math.floor(Math.random() * monsterImages.length);
+            const mImg = document.getElementById('monster-img');
+            const mEmoji = document.getElementById('emoji-monster');
+            
+            mImg.src = monsterImages[mIndex];
+            mImg.style.display = 'block';
+            mEmoji.innerText = monsterEmojis[mIndex];
+            mEmoji.style.display = 'none';
+
             generateOptions();
         }
 
@@ -230,11 +297,19 @@
             });
         }
 
+        function triggerBoomEffect() {
+            const boom = document.getElementById('boom-box');
+            boom.classList.add('active');
+            setTimeout(() => boom.classList.remove('active'), 350);
+        }
+
         function checkAnswer(selected, btn) {
             if (isAnsweringLocked) return;
             if (selected === correctAnswer) {
                 isAnsweringLocked = true; btn.classList.add('correct');
                 playSound('correct'); triggerVibrate(50);
+                triggerBoomEffect();
+
                 score += 10; document.getElementById('score').innerText = score;
                 setTimeout(() => {
                     currentQuestion++;
@@ -248,7 +323,11 @@
         }
 
         function togglePause() {
-            document.getElementById('modal-icon').innerText = "⏸️";
+            const resultImg = document.getElementById('modal-result-img');
+            const fallbackEmoji = document.getElementById('modal-icon-emoji');
+            resultImg.src = 'hero.png'; resultImg.style.display = 'block';
+            fallbackEmoji.innerText = "⚛️"; fallbackEmoji.style.display = 'none';
+
             document.getElementById('modal-title').innerText = "速算特訓暫停中";
             document.getElementById('modal-desc').innerText = `當前進度：${currentQuestion + 1} / ${totalQuestions}`;
             document.getElementById('game-modal').classList.remove('hidden');
@@ -257,8 +336,15 @@
         function endGame() {
             let isNewHigh = false;
             if (score > highScore) { highScore = score; localStorage.setItem('reactor_high_score', highScore); isNewHigh = true; }
-            document.getElementById('modal-icon').innerText = isNewHigh ? "🏆" : "⚛️";
-            document.getElementById('modal-title').innerText = isNewHigh ? "🎉 突破新紀錄！" : "反應爐充能完成！";
+            
+            const resultImg = document.getElementById('modal-result-img');
+            const fallbackEmoji = document.getElementById('modal-icon-emoji');
+            resultImg.style.display = 'block'; fallbackEmoji.style.display = 'none';
+
+            if (isNewHigh || score >= 200) { resultImg.src = 'win.png'; fallbackEmoji.innerText = "🏆"; }
+            else { resultImg.src = 'lose.png'; fallbackEmoji.innerText = "💥"; }
+
+            document.getElementById('modal-title').innerText = isNewHigh ? "🎉 突破新紀錄！" : (score >= 200 ? "⚡ 怪獸全數擊退！" : "💥 機甲反應爐過載！");
             document.getElementById('modal-desc').innerText = `最終得分：${score} (最高紀錄: ${highScore})`;
             document.getElementById('game-modal').classList.remove('hidden');
             updateScoreUI();
@@ -266,6 +352,7 @@
 
         function startGame() {
             initAudio(); currentQuestion = 0; score = 0;
+            buildQuestionPool();
             updateScoreUI();
             document.getElementById('game-modal').classList.add('hidden');
             generateQuestion();
