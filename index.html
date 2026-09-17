@@ -3,29 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>機甲啟動碼 v1.7 (文案與UI優化完整版) 🤖</title>
+    <title>機甲反應爐 - 乘法速算特訓 ⚡</title>
     <style>
         :root {
-            --primary: #00d2d3;
-            --hp-green: #2ed573;
-            --hp-red: #ff4757;
-            --timer-color: #f1c40f;
-            --bg-dark: #1e272e;
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.9);
+            --accent-cyan: #38bdf8;
+            --accent-green: #4ade80;
+            --accent-yellow: #facc15;
+            --accent-red: #ff7675;
+            --text-color: #f8fafc;
+            --btn-bg: #334155;
         }
 
-        * { 
-            box-sizing: border-box; 
-            user-select: none; -webkit-user-select: none; 
-            touch-action: manipulation;
-        }
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-dark);
-            margin: 0; overflow: hidden;
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; min-height: 100dvh;
-            position: fixed; width: 100%; height: 100%;
+            font-family: "Chalkboard SE", "Comic Sans MS", "微軟正黑體", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0; padding: 0; display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; min-height: 100dvh; overflow: hidden;
         }
 
         /* 雙層背景防呆：圖檔載入失敗自動退回科幻漸層 */
@@ -38,390 +36,227 @@
             width: 100%; height: 100%; object-fit: cover; opacity: 0.65;
         }
 
-        .container {
-            width: 100%; max-width: 480px; height: 100vh; height: 100dvh;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: space-between;
-            padding: 10px 15px max(15px, env(safe-area-inset-bottom));
-            position: relative;
+        .app-container {
+            width: 100%; max-width: 420px; height: 100vh; height: 100dvh;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 10px 15px; padding-bottom: max(12px, env(safe-area-inset-bottom)); position: relative;
         }
 
-        /* HUD */
         .hud {
-            width: 100%; display: flex; justify-content: space-between; align-items: center;
-            color: white; font-size: 1rem; font-weight: bold;
-            text-shadow: 0 0 10px var(--primary);
-            z-index: 10; margin-top: 5px; flex-shrink: 0;
-            background: rgba(0,0,0,0.65); border-radius: 15px; padding: 6px 12px;
-            border: 1px solid rgba(0, 210, 211, 0.4);
-            backdrop-filter: blur(5px);
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(30, 41, 59, 0.85); padding: 6px 12px; border-radius: 16px;
+            border: 1px solid rgba(56, 189, 248, 0.3); backdrop-filter: blur(5px);
         }
-        
         .hud-btn-group { display: flex; gap: 6px; }
-        .icon-btn {
-            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4);
-            color: white; border-radius: 8px; cursor: pointer;
-            padding: 4px 8px; font-size: 1rem; transition: background 0.2s;
-        }
-        .icon-btn:active { background: var(--primary); transform: scale(0.95); }
-
-        .game-info { display: flex; gap: 12px; }
-
-        /* 狀態區 */
-        .status-area {
-            width: 100%; display: flex; flex-direction: column; align-items: center;
-            position: absolute; top: 55px; left: 0; z-index: 20;
-            pointer-events: none;
+        .hud-icon-btn {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 0.95rem;
+            cursor: pointer; display: flex; justify-content: center; align-items: center;
         }
 
-        .hero-hp-container {
-            width: 75%; max-width: 280px; height: 14px;
-            background: #dfe4ea; border: 2px solid #fff;
-            border-radius: 15px; overflow: hidden;
-            box-shadow: 0 5px 10px rgba(0,0,0,0.5);
-        }
-        .hero-hp-bar {
-            height: 100%; background: var(--hp-green); width: 100%;
-            transition: width 0.3s ease-out, background-color 0.3s;
-        }
-        .hp-damage { animation: flashRed 0.2s 3; }
-        @keyframes flashRed { 0%, 100% { background-color: var(--hp-red); } 50% { background-color: #fff; } }
+        .score-box { text-align: right; }
+        .score-box div { font-size: 0.65rem; color: #94a3b8; }
+        .score-box span { font-size: 0.95rem; font-weight: bold; color: var(--accent-cyan); }
 
-        .timer-container {
-            width: 75%; max-width: 280px; height: 6px;
-            background: rgba(255,255,255,0.2);
-            margin-top: 4px; border-radius: 3px;
-            overflow: hidden; opacity: 0; transition: opacity 0.3s;
-        }
-        .timer-bar {
-            width: 100%; height: 100%; background: var(--timer-color);
-            transition: width 0.1s linear;
+        .progress-text { text-align: center; font-size: 0.85rem; color: var(--accent-yellow); font-weight: bold; margin: 4px 0; }
+
+        .main-game-area {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            flex: 1; width: 100%; min-height: 0; position: relative;
         }
 
-        /* 機甲區 */
-        .hero-zone {
-            flex: 1; display: flex; justify-content: center; align-items: center;
-            position: relative; width: 100%; min-height: 0;
-            pointer-events: none;
+        .battle-stage {
+            display: flex; justify-content: space-around; align-items: center;
+            width: 100%; max-width: 320px; height: 110px; position: relative; margin-bottom: 5px;
         }
-        #hero-img {
-            width: auto; max-height: 25vh; object-fit: contain;
-            filter: drop-shadow(0 0 15px rgba(0, 210, 211, 0.5));
-            transition: transform 0.2s, filter 0.2s;
-        }
-        .hero-emoji-fallback {
-            font-size: 5rem; filter: drop-shadow(0 0 15px rgba(0, 210, 211, 0.5));
-        }
-        .hero-active { animation: heroPulse 0.5s; filter: drop-shadow(0 0 30px white) !important; }
-        @keyframes heroPulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-
-        /* 爆炸特效 */
-        #boom-img {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            width: 220px; max-width: 85%; z-index: 30; opacity: 0;
-        }
-        .boom-emoji-fallback {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            font-size: 6rem; z-index: 30; opacity: 0; pointer-events: none;
-        }
-        .boom-anim { animation: boomPop 1.2s forwards; }
-        @keyframes boomPop {
-            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-            10% { opacity: 1; transform: translate(-50%, -50%) scale(1.0); } 
-            70% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); } 
-            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } 
-        }
-
-        /* 按鈕盤 */
-        .control-panel {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 12px;
-            border: 2px solid rgba(255,255,255,0.3);
-            margin-bottom: 5px; display: grid; gap: 10px; flex-shrink: 0;
-            width: 100%; max-width: 380px;
-        }
-        .grid-lv1 { grid-template-columns: repeat(2, 1fr); } 
-        .grid-lv2 { grid-template-columns: repeat(3, 1fr); } 
-        .grid-lv3 { grid-template-columns: repeat(3, 1fr); } 
-
-        .control-panel.locked { pointer-events: none; opacity: 0.9; }
-
-        /* 按鈕樣式 */
-        .btn {
-            width: 100%; aspect-ratio: 1; max-width: 80px; max-height: 80px;
-            margin: 0 auto; border-radius: 50%;
-            background-image: url('buttons.png'); background-size: 300% 300%;
-            background-repeat: no-repeat; cursor: pointer;
-            border: 3px solid rgba(255,255,255,0.5);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            transition: transform 0.1s, filter 0.1s;
-            -webkit-tap-highlight-color: transparent;
+        .hero-box, .monster-box {
+            position: relative; width: 95px; height: 95px;
             display: flex; justify-content: center; align-items: center;
-            font-size: 1.5rem; color: #fff; font-weight: bold;
         }
-        
-        @media (max-height: 650px) {
-            .btn { max-width: 60px; max-height: 60px; }
-            .control-panel { padding: 8px; gap: 6px; }
-            #hero-img { max-height: 20vh; }
+        .hero-img, .monster-img {
+            max-width: 100%; max-height: 100%; object-fit: contain;
+            filter: drop-shadow(0 4px 10px rgba(56, 189, 248, 0.4));
         }
+        .hero-img { animation: floatHero 2.5s ease-in-out infinite; }
+        @keyframes floatHero { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
-        .btn:active { transform: scale(0.9); }
-        .btn.lit {
-            filter: brightness(1.8) drop-shadow(0 0 20px white);
-            transform: scale(1.05); border-color: white;
-        }
-        
-        .b1 { background-position: 0% 0%; background-color: #ff4757; } 
-        .b2 { background-position: 50% 0%; background-color: #2ed573; } 
-        .b3 { background-position: 100% 0%; background-color: #1e90ff; }
-        .b4 { background-position: 0% 50%; background-color: #ffa502; } 
-        .b5 { background-position: 50% 50%; background-color: #9b59b6; } 
-        .b6 { background-position: 100% 50%; background-color: #e84393; }
-        .b7 { background-position: 0% 100%; background-color: #00d2d3; } 
-        .b8 { background-position: 50% 100%; background-color: #f1c40f; } 
-        .b9 { background-position: 100% 100%; background-color: #55efc4; }
+        .monster-img { animation: pulseMonster 1.8s ease-in-out infinite; }
+        @keyframes pulseMonster { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
-        /* 全螢幕遮罩 */
-        .overlay-screen {
+        .boom-effect {
+            position: absolute; top: 50%; right: 10px; transform: translate(0, -50%) scale(0);
+            width: 140px; height: 140px; pointer-events: none; opacity: 0; z-index: 10;
+            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .boom-effect.active { transform: translate(0, -50%) scale(1.2); opacity: 1; }
+
+        .math-card {
+            background: rgba(15, 23, 42, 0.9); border: 3px solid var(--accent-cyan);
+            border-radius: 20px; padding: 16px 40px; text-align: center;
+            box-shadow: 0 8px 25px rgba(56, 189, 248, 0.25); margin-bottom: 8px; min-width: 220px;
+        }
+        .math-formula { font-size: 2.6rem; font-weight: bold; letter-spacing: 2px; color: #fff; line-height: 1.2; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: auto; }
+        .opt-btn {
+            background: var(--btn-bg); border: none; border-bottom: 5px solid #1e293b;
+            border-radius: 16px; padding: 14px 0; font-size: 1.6rem; font-weight: bold;
+            color: #fff; cursor: pointer; transition: all 0.08s ease;
+            display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .opt-btn:active { transform: translateY(3px); border-bottom-width: 2px; background: #475569; }
+        .opt-btn.correct { background: var(--accent-green) !important; color: #0f172a !important; }
+        .opt-btn.wrong { background: #ef4444 !important; color: #fff !important; }
+
+        .modal {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92);
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            z-index: 100; color: white; text-align: center;
-            padding: 20px;
+            background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(5px);
+            z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;
         }
-        
-        h1 { color: var(--primary); margin-bottom: 10px; font-size: 2.2rem; text-shadow: 0 0 20px var(--primary); }
-        
+        .modal-card {
+            background: var(--card-bg); border: 3px solid var(--accent-cyan);
+            border-radius: 20px; padding: 20px; width: 85%; max-width: 320px; text-align: center;
+            box-shadow: 0 10px 30px rgba(56, 189, 248, 0.3); transition: border-color 0.3s;
+        }
+
+        .modal-card.lose-theme {
+            border-color: var(--accent-red);
+            box-shadow: 0 10px 30px rgba(255, 118, 117, 0.4);
+            animation: pulseRed 1.5s infinite;
+        }
+        @keyframes pulseRed { 0%, 100% { border-color: var(--accent-red); } 50% { border-color: #d63031; } }
+
         .menu-btn {
-            background: transparent; border: 2px solid var(--primary);
-            color: white; padding: 15px 30px; margin: 10px;
-            font-size: 1.3rem; border-radius: 50px; cursor: pointer;
-            width: 85%; max-width: 320px; transition: all 0.2s;
+            background: transparent; border: 2px solid var(--accent-cyan);
+            color: white; padding: 12px 20px; margin: 8px 0; font-size: 1.1rem; font-weight: bold;
+            border-radius: 50px; cursor: pointer; width: 100%; transition: all 0.2s;
         }
-        .menu-btn:active { transform: scale(0.95); background: var(--primary); color: black; }
-        
-        .level-tag { font-size: 0.85rem; opacity: 0.85; display: block; margin-top: 5px; color: #ffeb3b; }
-        .back-btn { margin-top: 20px; font-size: 1rem; border: 1px solid #aaa; color: #aaa; padding: 10px 20px; width: auto; }
-
+        .menu-btn:active { transform: scale(0.95); background: var(--accent-cyan); color: #000; }
+        .level-tag { font-size: 0.8rem; opacity: 0.8; display: block; margin-top: 2px; color: var(--accent-yellow); }
         .hidden { display: none !important; }
-
-        @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.98); } }
-
-        #countdown-text {
-            font-size: 8rem; font-weight: 900; color: #ffeb3b;
-            text-shadow: 0 0 30px #ffeb3b;
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-
-        #msg-box {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 2.2rem; font-weight: bold; color: white;
-            text-shadow: 0 0 15px black; pointer-events: none; opacity: 0;
-            transition: opacity 0.3s; z-index: 50; width: 90%; text-align: center;
-            background: rgba(0,0,0,0.7); padding: 12px 20px; border-radius: 12px;
-            border: 1px solid var(--primary);
-        }
-
-        .shake { animation: shake 0.5s; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
-
-        .score-record {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px; padding: 15px; margin: 15px 0;
-            width: 85%; max-width: 320px; border: 1px solid var(--primary);
-        }
-        .new-record { color: #f1c40f; font-weight: bold; animation: blink 1s infinite; }
     </style>
 </head>
 <body>
 
     <!-- 雙層背景容器 -->
     <div class="battle-bg-container">
-        <img src="bg.png" class="battle-bg-img" onerror="this.style.display='none';">
+        <img src="bg_reactor.png" class="battle-bg-img" onerror="this.style.display='none';">
     </div>
 
-    <div class="container">
+    <div class="app-container">
         <div class="hud">
-            <button class="icon-btn" onclick="backToMode()">⏮</button>
-            <div class="game-info">
-                <span>Lv <span id="level-display">1</span></span>
-                <span>Score <span id="score-display">0</span></span>
-            </div>
             <div class="hud-btn-group">
-                <button class="icon-btn" id="audio-btn" onclick="toggleAudio()" title="音效開關">🔊</button>
-                <button class="icon-btn" id="vibrate-btn" onclick="toggleVibrate()" title="震動開關">📳</button>
-                <button class="icon-btn" onclick="togglePause()" title="暫停遊戲">⏸</button>
+                <button class="hud-icon-btn" id="sound-btn" onclick="toggleSound()">🔊</button>
+                <button class="hud-icon-btn" id="vibrate-btn" onclick="toggleVibrate()">📳</button>
+                <button class="hud-icon-btn" onclick="openLevelSelect()" title="返回選單">🏠</button>
+                <button class="hud-icon-btn" onclick="togglePause()">⏸️</button>
+            </div>
+            <div class="score-box">
+                <div>BEST: <span id="high-score">0</span></div>
+                <div>SCORE: <span id="score">0</span></div>
             </div>
         </div>
 
-        <div class="status-area">
-            <div class="hero-hp-container">
-                <div class="hero-hp-bar" id="hero-hp-bar"></div>
+        <div class="progress-text">反應爐進度：<span id="current-q-num">1</span> / 25</div>
+
+        <div class="main-game-area">
+            <div class="battle-stage">
+                <div class="hero-box">
+                    <img src="hero.png" class="hero-img" id="hero-img" onerror="this.style.display='none'; document.getElementById('emoji-hero').style.display='block';">
+                    <span id="emoji-hero" style="font-size:3.5rem; display:none;">🤖</span>
+                </div>
+                <div style="font-size:1.5rem; font-weight:bold; color:var(--accent-yellow);">VS</div>
+                <div class="monster-box">
+                    <img src="m1.png" class="monster-img" id="monster-img" onerror="this.style.display='none'; document.getElementById('emoji-monster').style.display='block';">
+                    <span id="emoji-monster" style="font-size:3.5rem; display:none;">👾</span>
+                </div>
+
+                <div id="boom-box" class="boom-effect">
+                    <img src="boom.png" style="width:100%; height:100%; object-fit:contain;" onerror="this.style.display='none'; document.getElementById('emoji-boom').style.display='block';">
+                    <span id="emoji-boom" style="font-size:4rem; display:none;">💥</span>
+                </div>
             </div>
-            <div class="timer-container" id="timer-box">
-                <div class="timer-bar" id="timer-bar"></div>
+
+            <div class="math-card">
+                <div class="math-formula"><span id="num-a">7</span> × <span id="num-b">8</span></div>
             </div>
         </div>
 
-        <div class="hero-zone">
-            <img id="boom-img" src="boom.png" alt="Boom" onerror="this.style.display='none'; document.getElementById('boom-emoji').style.display='block';">
-            <div id="boom-emoji" class="boom-emoji-fallback" style="display:none;">💥</div>
+        <div class="options-grid" id="options-grid"></div>
 
-            <img id="hero-img" src="hero.png" alt="Hero" onerror="this.style.display='none'; document.getElementById('hero-emoji').style.display='block';">
-            <div id="hero-emoji" class="hero-emoji-fallback" style="display:none;">🤖</div>
-
-            <div id="msg-box"></div>
+        <div id="level-modal" class="modal">
+            <div class="modal-card">
+                <div style="height: 80px; display:flex; justify-content:center; align-items:center; margin-bottom:10px;">
+                    <img src="hero.png" style="max-height:100%; object-fit:contain;" onerror="this.style.display='none'; document.getElementById('modal-emoji').style.display='block';">
+                    <span id="modal-emoji" style="font-size:3.5rem; display:none;">⚛️</span>
+                </div>
+                <h2 style="color:var(--accent-cyan); margin: 5px 0;">乘法速算特訓</h2>
+                <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:12px;">請選擇訓練難度</p>
+                <button class="menu-btn" onclick="selectDifficulty(1)">🟢 見習駕駛 <span class="level-tag">專攻 2, 3, 4, 5 的乘法</span></button>
+                <button class="menu-btn" onclick="selectDifficulty(2)">🟡 正式隊員 <span class="level-tag">專攻 6, 7, 8, 9 的乘法</span></button>
+                <button class="menu-btn" onclick="selectDifficulty(3)">🔴 王牌機師 <span class="level-tag">2~9 全範圍速算大亂鬥</span></button>
+            </div>
         </div>
 
-        <div class="control-panel" id="grid-box"></div>
-    </div>
-
-    <!-- 模式選擇 -->
-    <div id="mode-screen" class="overlay-screen">
-        <h1>機甲啟動碼</h1>
-        <p style="color: #f1c40f; font-weight: bold; margin-top: -5px; animation: blink 2s infinite;">
-            🔊 建議開啟音效遊玩
-        </p>
-        <p>選擇訓練模式</p>
-        <button class="menu-btn" onclick="selectMode('stack')">
-            🧩 堆疊記憶
-            <span class="level-tag">順序重複 (考驗長序列記憶)</span>
-        </button>
-        <button class="menu-btn" onclick="selectMode('random')">
-            🎲 隨機題庫
-            <span class="level-tag">每題全新 (考驗瞬間專注力)</span>
-        </button>
-    </div>
-
-    <!-- 難度選擇 -->
-    <div id="level-screen" class="overlay-screen hidden">
-        <h1 id="mode-title">選擇難度</h1>
-        <button class="menu-btn" onclick="startCountdown(1)">
-            🟢 見習駕駛 <span class="level-tag">4 按鈕</span>
-        </button>
-        <button class="menu-btn" onclick="startCountdown(2)">
-            🟡 正式隊員 <span class="level-tag">6 按鈕</span>
-        </button>
-        <button class="menu-btn" onclick="startCountdown(3)">
-            🔴 王牌機師 <span class="level-tag">9 按鈕</span>
-        </button>
-        <button class="menu-btn back-btn" onclick="backToMode()">⬅ 回上頁</button>
-    </div>
-
-    <!-- 倒數畫面 -->
-    <div id="countdown-screen" class="overlay-screen hidden" style="background: rgba(0,0,0,0.75);">
-        <div id="countdown-text">3</div>
-    </div>
-
-    <!-- 暫停畫面 -->
-    <div id="pause-screen" class="overlay-screen hidden">
-        <h1>遊戲暫停</h1>
-        <button class="menu-btn" onclick="togglePause()">▶ 繼續戰鬥</button>
-        <button class="menu-btn back-btn" onclick="backToMode()">⏮ 放棄任務</button>
-    </div>
-
-    <!-- 結算畫面 (支援 lose.png 機甲癱倒損壞圖) -->
-    <div id="result-screen" class="overlay-screen hidden">
-        <h1 style="color: #ff4757;">能量耗盡</h1>
-        <div style="height: 110px; display:flex; justify-content:center; align-items:center; margin-bottom:10px;">
-            <img src="lose.png" style="max-height:100%; object-fit:contain;" onerror="this.style.display='none'; document.getElementById('result-fallback-emoji').style.display='block';">
-            <span id="result-fallback-emoji" style="font-size:4.5rem; display:none;">💥</span>
-        </div>
-        
-        <div class="score-record">
-            <p style="font-size: 1.4rem; margin: 8px 0;">本局分數: <span id="final-score" style="color:#00d2d3;">0</span></p>
-            <p style="font-size: 1.1rem; margin: 8px 0;">
-                🏆 最高紀錄: <span id="high-score">0</span>
-                <span id="new-record-tag" class="new-record hidden"> (新紀錄!)</span>
-            </p>
-            <p id="record-detail" style="font-size: 0.9rem; color: #aaa; margin: 5px 0;"></p>
+        <!-- 結算 Modal -->
+        <div id="game-modal" class="modal hidden">
+            <div class="modal-card" id="result-modal-card">
+                <div style="height: 110px; display:flex; justify-content:center; align-items:center; margin-bottom:10px;">
+                    <img src="win.png" id="modal-result-img" style="max-height:100%; object-fit:contain;" onerror="this.style.display='none'; document.getElementById('modal-icon-emoji').style.display='block';">
+                    <span id="modal-icon-emoji" style="font-size:4.5rem; display:none;">🏆</span>
+                </div>
+                <h2 id="modal-title" style="color:var(--accent-cyan); margin: 5px 0;">反應爐充能完成</h2>
+                <p id="modal-desc" style="color:#94a3b8; font-size:0.9rem; margin-bottom:15px;">本次得分：0</p>
+                <button class="menu-btn" id="result-confirm-btn" style="background:var(--accent-cyan); color:#000;" onclick="openLevelSelect()">重新選擇難度 ⚡</button>
+            </div>
         </div>
 
-        <button class="menu-btn" onclick="backToMode()">重新維修</button>
-    </div>
-
-    <!-- 防成癮冷卻畫面 -->
-    <div id="cooldown-screen" class="overlay-screen hidden">
-        <h1 style="color: #ff4757;">🛑 機甲過熱冷卻中</h1>
-        <p style="color:#ccc; font-size:0.95rem; line-height:1.5; max-width:320px; margin-bottom:20px;">
-            駕駛員請注意！您已連續進行記憶特訓滿 15 分鐘。<br>系統已啟動保護機制，請起身活動身體、讓大腦與眼睛休息！
-        </p>
-        <div style="font-size:3rem; font-weight:bold; color:#f1c40f; margin-bottom:20px;" id="cooldown-timer">05:00</div>
-        <button class="menu-btn" style="border-color:#555; color:#888; cursor:not-allowed;" disabled>系統維修中...</button>
+        <!-- 15 分鐘防成癮冷卻 Modal -->
+        <div id="cooldown-modal" class="modal hidden">
+            <div class="modal-card" style="border-color:#ff7675;">
+                <div style="font-size:3.5rem; margin-bottom:10px;">🛑</div>
+                <h2 style="color:#ff7675; margin: 5px 0;">機甲過熱冷卻中</h2>
+                <p style="color:#ccc; font-size:0.85rem; line-height:1.5; margin-bottom:15px;">
+                    駕駛員請注意！您已連續練習滿 15 分鐘。<br>系統已啟動保護機制，請起身活動身體、看看遠方！
+                </p>
+                <div style="font-size:2.5rem; font-weight:bold; color:var(--accent-yellow); margin-bottom:15px;" id="cooldown-timer">05:00</div>
+                <button class="menu-btn" style="border-color:#555; color:#888; cursor:not-allowed;" disabled>維修冷卻中...</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
-        document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
-        
-        const gameConfig = {
-            stack: {
-                1: { buttons: 4, layout: 'grid-lv1', pool: [1, 2, 3, 4], startLen: 2 },
-                2: { buttons: 6, layout: 'grid-lv2', pool: [1, 2, 3, 4, 5, 6], startLen: 3 },
-                3: { buttons: 9, layout: 'grid-lv3', pool: [1, 2, 3, 4, 5, 6, 7, 8, 9], startLen: 4 }
-            },
-            random: {
-                1: { buttons: 4, layout: 'grid-lv1', pool: [1, 2, 3, 4], startLen: 3 },
-                2: { buttons: 6, layout: 'grid-lv2', pool: [1, 2, 3, 4, 5, 6], startLen: 4 },
-                3: { buttons: 9, layout: 'grid-lv3', pool: [1, 2, 3, 4, 5, 6, 7, 8, 9], startLen: 5 }
-            }
-        };
-
         const AudioContext = window.AudioContext || window.webkitAudioContext;
-        let audioCtx;
-        let soundEnabled = true;
-        let vibrateEnabled = true;
+        let audioCtx = null;
+        let soundEnabled = true, vibrateEnabled = true;
 
-        function initAudio() {
-            if (!audioCtx) audioCtx = new AudioContext();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        }
+        const monsterImages = ['m1.png', 'm2.png', 'm3.png', 'm4.png', 'm5.png'];
+        const monsterEmojis = ['🐲', '🕷️', '🫠', '🗿', '🪴'];
+        let lastMonsterIndex = -1; // 記錄上一隻出現的怪獸，避免連續重複
 
-        function triggerVibrate(ms = 40) {
-            if (vibrateEnabled && navigator.vibrate) {
-                navigator.vibrate(ms);
+        function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+        function triggerVibrate(ms = 40) { if (vibrateEnabled && navigator.vibrate) navigator.vibrate(ms); }
+
+        function playSound(type) {
+            if (!soundEnabled) return; initAudio(); if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'correct') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.08);
+                gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, now); osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now); osc.stop(now + 0.25);
             }
         }
 
-        document.body.addEventListener('click', function() { initAudio(); }, { once: true });
-        document.body.addEventListener('touchstart', function() { initAudio(); }, { once: true });
-
-        function toggleAudio() {
-            initAudio();
-            soundEnabled = !soundEnabled;
-            document.getElementById('audio-btn').innerText = soundEnabled ? '🔊' : '🔇';
-        }
-
-        function toggleVibrate() {
-            vibrateEnabled = !vibrateEnabled;
-            document.getElementById('vibrate-btn').innerText = vibrateEnabled ? '📳' : '📴';
-            if (vibrateEnabled) triggerVibrate(30);
-        }
-
-        function playTone(freq, type = 'sine', duration = 0.3) {
-            if (!soundEnabled || !isFinite(freq)) return;
-            if (!audioCtx) initAudio();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type; 
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
-        }
+        function toggleSound() { soundEnabled = !soundEnabled; document.getElementById('sound-btn').innerText = soundEnabled ? '🔊' : '🔇'; }
+        function toggleVibrate() { vibrateEnabled = !vibrateEnabled; document.getElementById('vibrate-btn').innerText = vibrateEnabled ? '📳' : '📴'; if (vibrateEnabled) triggerVibrate(30); }
 
         // --- 15 分鐘防成癮冷卻機制 ---
         let playTimeSeconds = 0;
@@ -430,15 +265,13 @@
 
         setInterval(() => {
             playTimeSeconds++;
-            if (playTimeSeconds >= 900 && !cooldownInterval) { // 900 秒 = 15 分鐘
+            if (playTimeSeconds >= 900 && !cooldownInterval) { // 900秒 = 15 分鐘
                 triggerCooldown();
             }
         }, 1000);
 
         function triggerCooldown() {
-            state.gameActive = false;
-            stopActionTimer();
-            document.getElementById('cooldown-screen').classList.remove('hidden');
+            document.getElementById('cooldown-modal').classList.remove('hidden');
             cooldownSecondsLeft = 300;
             updateCooldownUI();
 
@@ -449,8 +282,7 @@
                     clearInterval(cooldownInterval);
                     cooldownInterval = null;
                     playTimeSeconds = 0;
-                    document.getElementById('cooldown-screen').classList.add('hidden');
-                    backToMode();
+                    document.getElementById('cooldown-modal').classList.add('hidden');
                 }
             }, 1000);
         }
@@ -461,390 +293,178 @@
             document.getElementById('cooldown-timer').innerText = `${m}:${s}`;
         }
 
-        const tones = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33];
+        let currentDifficulty = 1;
+        let currentQuestion = 0, totalQuestions = 25, score = 0;
+        let highScore = parseInt(localStorage.getItem('reactor_high_score')) || 0;
+        let correctAnswer = 0, isAnsweringLocked = false;
+        let questionPool = [];
 
-        let state = {
-            mode: 'stack', diff: 1, round: 1, sequence: [],
-            playerIndex: 0, isPlaying: false, score: 0,
-            gameActive: false, hp: 100,
-            timer: null,
-            inputLocked: false,
-            isPaused: false
-        };
-
-        const els = {
-            modeScreen: document.getElementById('mode-screen'),
-            levelScreen: document.getElementById('level-screen'),
-            resultScreen: document.getElementById('result-screen'),
-            cntScreen: document.getElementById('countdown-screen'),
-            pauseScreen: document.getElementById('pause-screen'),
-            cntText: document.getElementById('countdown-text'),
-            modeTitle: document.getElementById('mode-title'),
-            grid: document.getElementById('grid-box'),
-            hero: document.getElementById('hero-img'),
-            heroEmoji: document.getElementById('hero-emoji'),
-            boom: document.getElementById('boom-img'),
-            boomEmoji: document.getElementById('boom-emoji'),
-            msg: document.getElementById('msg-box'),
-            score: document.getElementById('score-display'),
-            level: document.getElementById('level-display'),
-            finalScore: document.getElementById('final-score'),
-            highScore: document.getElementById('high-score'),
-            newRecordTag: document.getElementById('new-record-tag'),
-            recordDetail: document.getElementById('record-detail'),
-            hpBar: document.getElementById('hero-hp-bar'),
-            timerBox: document.getElementById('timer-box'),
-            timerBar: document.getElementById('timer-bar')
-        };
-
-        function selectMode(mode) {
-            initAudio();
-            state.mode = mode;
-            els.modeScreen.classList.add('hidden');
-            els.levelScreen.classList.remove('hidden');
-            els.modeTitle.innerText = mode === 'stack' ? '🧩 堆疊記憶' : '🎲 隨機題庫';
+        function selectDifficulty(diff) {
+            currentDifficulty = diff;
+            document.getElementById('level-modal').classList.add('hidden');
+            startGame();
         }
 
-        function backToMode() {
-            state.gameActive = false;
-            stopActionTimer();
-            els.levelScreen.classList.add('hidden');
-            els.resultScreen.classList.add('hidden');
-            els.pauseScreen.classList.add('hidden');
-            els.cntScreen.classList.add('hidden');
-            els.modeScreen.classList.remove('hidden');
+        function openLevelSelect() {
+            document.getElementById('game-modal').classList.add('hidden');
+            document.getElementById('level-modal').classList.remove('hidden');
+        }
+
+        // Fisher-Yates 隨機洗牌演算法（零重複保證）
+        function buildQuestionPool() {
+            const raw = [];
+            let startA = 2, endA = 5;
+
+            if (currentDifficulty === 2) { startA = 6; endA = 9; }
+            else if (currentDifficulty === 3) { startA = 2; endA = 9; }
+
+            for (let a = startA; a <= endA; a++) {
+                for (let b = 2; b <= 9; b++) {
+                    raw.push({ a, b, ans: a * b });
+                }
+            }
+            // 完全洗牌打亂
+            for (let i = raw.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [raw[i], raw[j]] = [raw[j], raw[i]];
+            }
+            questionPool = raw;
+        }
+
+        function generateQuestion() {
+            isAnsweringLocked = false;
+            if (questionPool.length === 0) buildQuestionPool();
+
+            const q = questionPool.pop();
+            correctAnswer = q.ans;
+
+            document.getElementById('num-a').innerText = q.a;
+            document.getElementById('num-b').innerText = q.b;
+            document.getElementById('current-q-num').innerText = currentQuestion + 1;
+
+            // 避開連續重複登場怪獸邏輯
+            let mIndex;
+            do {
+                mIndex = Math.floor(Math.random() * monsterImages.length);
+            } while (mIndex === lastMonsterIndex && monsterImages.length > 1);
+            lastMonsterIndex = mIndex;
+
+            const mImg = document.getElementById('monster-img');
+            const mEmoji = document.getElementById('emoji-monster');
+            
+            mImg.src = monsterImages[mIndex];
+            mImg.style.display = 'block';
+            mEmoji.innerText = monsterEmojis[mIndex];
+            mEmoji.style.display = 'none';
+
+            generateOptions();
+        }
+
+        function generateOptions() {
+            const grid = document.getElementById('options-grid'); grid.innerHTML = '';
+            let options = [correctAnswer];
+            while (options.length < 4) {
+                let offset = (Math.floor(Math.random() * 4) + 1) * (Math.random() > 0.5 ? 1 : -1);
+                let wrongOpt = correctAnswer + offset;
+                if (wrongOpt > 0 && !options.includes(wrongOpt)) options.push(wrongOpt);
+            }
+            options.sort(() => Math.random() - 0.5);
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn'; btn.innerText = opt;
+                btn.onclick = () => checkAnswer(opt, btn);
+                grid.appendChild(btn);
+            });
+        }
+
+        function triggerBoomEffect() {
+            const boom = document.getElementById('boom-box');
+            boom.classList.add('active');
+            setTimeout(() => boom.classList.remove('active'), 350);
+        }
+
+        function checkAnswer(selected, btn) {
+            if (isAnsweringLocked) return;
+            if (selected === correctAnswer) {
+                isAnsweringLocked = true; btn.classList.add('correct');
+                playSound('correct'); triggerVibrate(50);
+                triggerBoomEffect();
+
+                score += 10; document.getElementById('score').innerText = score;
+                setTimeout(() => {
+                    currentQuestion++;
+                    if (currentQuestion >= totalQuestions) endGame();
+                    else generateQuestion();
+                }, 400);
+            } else {
+                btn.classList.add('wrong'); playSound('wrong'); triggerVibrate(100);
+                setTimeout(() => btn.classList.remove('wrong'), 600);
+            }
         }
 
         function togglePause() {
-            if (!state.gameActive) return;
-            state.isPaused = !state.isPaused;
+            const modalContainer = document.getElementById('result-modal-card');
+            const resultImg = document.getElementById('modal-result-img');
+            const fallbackEmoji = document.getElementById('modal-icon-emoji');
             
-            if (state.isPaused) {
-                els.pauseScreen.classList.remove('hidden');
-                stopActionTimer(); 
+            modalContainer.classList.remove('lose-theme');
+            resultImg.src = 'hero.png'; resultImg.style.display = 'block';
+            fallbackEmoji.innerText = "⚛️"; fallbackEmoji.style.display = 'none';
+
+            document.getElementById('modal-title').style.color = "var(--accent-cyan)";
+            document.getElementById('modal-title').innerText = "速算特訓暫停中";
+            document.getElementById('modal-desc').innerText = `當前進度：${currentQuestion + 1} / ${totalQuestions}`;
+            document.getElementById('game-modal').classList.remove('hidden');
+        }
+
+        function endGame() {
+            let isNewHigh = false;
+            if (score > highScore) { highScore = score; localStorage.setItem('reactor_high_score', highScore); isNewHigh = true; }
+            
+            const modalContainer = document.getElementById('result-modal-card');
+            const resultImg = document.getElementById('modal-result-img');
+            const fallbackEmoji = document.getElementById('modal-icon-emoji');
+            const confirmBtn = document.getElementById('result-confirm-btn');
+            
+            resultImg.style.display = 'block'; fallbackEmoji.style.display = 'none';
+
+            if (isNewHigh || score >= 200) {
+                modalContainer.classList.remove('lose-theme');
+                resultImg.src = 'win.png'; fallbackEmoji.innerText = "🏆";
+                document.getElementById('modal-title').style.color = "var(--accent-cyan)";
+                document.getElementById('modal-title').innerText = isNewHigh ? "🎉 突破新紀錄！" : "⚡ 怪獸全數擊退！";
+                confirmBtn.style.background = "var(--accent-cyan)";
+                confirmBtn.innerText = "再次挑戰 ⚡";
             } else {
-                els.pauseScreen.classList.add('hidden');
-                if (!state.isPlaying && !state.inputLocked) {
-                    startActionTimer(true); 
-                }
+                modalContainer.classList.add('lose-theme');
+                resultImg.src = 'lose.png'; fallbackEmoji.innerText = "💥";
+                document.getElementById('modal-title').style.color = "var(--accent-red)";
+                document.getElementById('modal-title').innerText = "💥 機甲反應爐過載！";
+                confirmBtn.style.background = "var(--accent-red)";
+                confirmBtn.innerText = "重新維修 🛠️";
+                playSound('wrong'); triggerVibrate(150);
             }
+
+            document.getElementById('modal-desc').innerText = `最終得分：${score} (最高紀錄: ${highScore})`;
+            document.getElementById('game-modal').classList.remove('hidden');
+            updateScoreUI();
         }
 
-        function startCountdown(difficulty) {
-            initAudio();
-            state.diff = difficulty;
-            state.round = 1;
-            state.sequence = [];
-            state.score = 0;
-            state.hp = 100;
-            state.inputLocked = false;
-            state.isPaused = false;
-            updateHp();
-            stopActionTimer(); 
-            
-            els.levelScreen.classList.add('hidden');
-            els.cntScreen.classList.remove('hidden');
-            renderGrid(state.mode, difficulty);
-
-            let count = 3;
-            els.cntText.innerText = count;
-            playTone(440, 'square', 0.1);
-            triggerVibrate(30);
-
-            const timer = setInterval(() => {
-                count--;
-                if(count > 0) {
-                    els.cntText.innerText = count;
-                    els.cntText.style.animation = 'none';
-                    els.cntText.offsetHeight; 
-                    els.cntText.style.animation = 'popIn 0.5s';
-                    playTone(440, 'square', 0.1);
-                    triggerVibrate(30);
-                } else {
-                    clearInterval(timer);
-                    els.cntText.innerText = "GO!";
-                    playTone(880, 'square', 0.3);
-                    triggerVibrate(60);
-                    setTimeout(() => {
-                        els.cntScreen.classList.add('hidden');
-                        state.gameActive = true;
-                        initGame();
-                    }, 500);
-                }
-            }, 1000);
+        function startGame() {
+            initAudio(); currentQuestion = 0; score = 0;
+            lastMonsterIndex = -1;
+            buildQuestionPool();
+            updateScoreUI();
+            document.getElementById('game-modal').classList.add('hidden');
+            generateQuestion();
         }
 
-        function initGame() {
-            const setting = gameConfig[state.mode][state.diff];
-            if (state.mode === 'stack') {
-                for(let i=0; i < setting.startLen; i++) {
-                    addSequenceStep(setting.buttons);
-                }
-            } 
-            startNewRound();
+        function updateScoreUI() {
+            document.getElementById('score').innerText = score;
+            document.getElementById('high-score').innerText = highScore;
         }
 
-        function addSequenceStep(maxBtns) {
-            const nextStep = Math.floor(Math.random() * maxBtns);
-            state.sequence.push(nextStep);
-        }
-
-        // Fisher-Yates 隨機不重複洗牌序列生成
-        function generateShuffledSequence(len, maxBtns) {
-            const pool = [];
-            while (pool.length < len) {
-                const available = Array.from({length: maxBtns}, (_, i) => i);
-                for (let i = available.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [available[i], available[j]] = [available[j], available[i]];
-                }
-                for (let btn of available) {
-                    if (pool.length === 0 || pool[pool.length - 1] !== btn) {
-                        pool.push(btn);
-                        if (pool.length === len) break;
-                    }
-                }
-            }
-            return pool;
-        }
-
-        function startNewRound() {
-            if (!state.gameActive) return;
-            stopActionTimer(); 
-            els.timerBox.style.opacity = 0;
-            state.inputLocked = true; 
-            els.grid.classList.add('locked');
-
-            const setting = gameConfig[state.mode][state.diff];
-
-            if (state.mode === 'random') {
-                let len = setting.startLen + (state.round - 1);
-                state.sequence = generateShuffledSequence(len, setting.buttons);
-                els.level.innerText = state.round;
-            } else {
-                els.level.innerText = state.sequence.length;
-            }
-            playSequence();
-        }
-
-        async function playSequence() {
-            state.playerIndex = 0;
-            state.isPlaying = true;
-            els.grid.classList.add('locked');
-            
-            showMessage("👁️ 看仔細！", 9999); 
-            
-            await new Promise(r => setTimeout(r, 800));
-            
-            let onTime = 400; 
-            let gap = 200;    
-
-            if (state.diff === 1) { 
-                onTime = 700; 
-                gap = 400;    
-            } else if (state.diff === 2) { 
-                onTime = 550;
-                gap = 250;
-            }
-            
-            for (let i = 0; i < state.sequence.length; i++) {
-                if (!state.gameActive) return;
-                const btnIndex = state.sequence[i];
-                const btn = els.grid.children[btnIndex];
-                
-                btn.classList.add('lit');
-                playTone(btn.dataset.tone, 'triangle', onTime / 1000);
-                triggerVibrate(20);
-                
-                await new Promise(r => setTimeout(r, onTime));
-                
-                btn.classList.remove('lit');
-                await new Promise(r => setTimeout(r, gap));
-            }
-            
-            state.isPlaying = false;
-            state.inputLocked = false; 
-            els.grid.classList.remove('locked');
-            showMessage("👉 換你了！");
-            startActionTimer(); 
-        }
-
-        let timeLeft = 100;
-
-        function startActionTimer(resume = false) {
-            stopActionTimer(); 
-            els.timerBox.style.opacity = 1;
-            
-            if (!resume) {
-                timeLeft = 100;
-                els.timerBar.style.width = '100%';
-            }
-            
-            let totalTime = (state.diff === 1) ? 10000 : 6000;
-            const interval = 100; 
-            const step = 100 / (totalTime / interval);
-
-            state.timer = setInterval(() => {
-                if(!state.gameActive || state.isPaused) return; 
-                
-                timeLeft -= step;
-                els.timerBar.style.width = timeLeft + '%';
-
-                if (timeLeft <= 0) {
-                    stopActionTimer();
-                    handleMistake(true); 
-                }
-            }, interval);
-        }
-
-        function resetActionTimer() {
-            if(state.timer) {
-                clearInterval(state.timer);
-                startActionTimer();
-            }
-        }
-
-        function stopActionTimer() {
-            if (state.timer) clearInterval(state.timer);
-            state.timer = null;
-        }
-
-        function handleInput(index, btn) {
-            if (state.isPlaying || !state.gameActive || state.inputLocked || state.isPaused) return;
-
-            btn.classList.add('lit');
-            playTone(btn.dataset.tone, 'triangle', 0.3);
-            triggerVibrate(30);
-            setTimeout(() => btn.classList.remove('lit'), 150);
-
-            if (index === state.sequence[state.playerIndex]) {
-                state.playerIndex++;
-                resetActionTimer(); 
-                
-                if (state.playerIndex >= state.sequence.length) {
-                    stopActionTimer(); 
-                    state.inputLocked = true; 
-                    els.grid.classList.add('locked');
-                    
-                    state.score += (state.sequence.length * 10);
-                    els.score.innerText = state.score;
-                    
-                    if (state.hp < 100) {
-                        state.hp = Math.min(100, state.hp + 10);
-                        updateHp();
-                    }
-
-                    const targetHero = els.hero.style.display !== 'none' ? els.hero : els.heroEmoji;
-                    targetHero.classList.add('hero-active');
-                    setTimeout(() => targetHero.classList.remove('hero-active'), 500);
-                    
-                    playTone(880, 'square', 0.15); 
-                    triggerVibrate(50);
-                    
-                    if (state.mode === 'stack') {
-                        const setting = gameConfig.stack[state.diff];
-                        addSequenceStep(setting.buttons);
-                    } else {
-                        state.round++;
-                    }
-                    setTimeout(startNewRound, 1000);
-                }
-            } else {
-                handleMistake(false);
-            }
-        }
-
-        function handleMistake(isTimeout = false) {
-            if (state.inputLocked) return; 
-            state.inputLocked = true; 
-            els.grid.classList.add('locked');
-
-            stopActionTimer();
-            state.hp -= 25; 
-            if (state.hp < 0) state.hp = 0;
-            updateHp();
-            
-            void els.hpBar.offsetWidth; 
-            els.hpBar.classList.add('hp-damage');
-            document.body.classList.add('shake');
-            playTone(150, 'sawtooth', 0.4); 
-            triggerVibrate(120);
-
-            const targetBoom = els.boom.style.display !== 'none' ? els.boom : els.boomEmoji;
-            targetBoom.classList.remove('boom-anim');
-            void targetBoom.offsetWidth; 
-            targetBoom.classList.add('boom-anim');
-            
-            setTimeout(() => {
-                document.body.classList.remove('shake');
-                
-                if (state.hp <= 0) {
-                    gameOver();
-                } else {
-                    state.playerIndex = 0; 
-                    setTimeout(playSequence, 1500); 
-                }
-            }, 500);
-        }
-
-        function gameOver() {
-            state.gameActive = false;
-            stopActionTimer();
-            els.resultScreen.classList.remove('hidden');
-            els.finalScore.innerText = state.score;
-            
-            const storageKey = `memory_game_best_${state.mode}`;
-            let bestScore = parseInt(localStorage.getItem(storageKey) || 0);
-
-            els.newRecordTag.classList.add('hidden');
-            
-            if (state.score > bestScore) {
-                bestScore = state.score;
-                localStorage.setItem(storageKey, bestScore);
-                els.newRecordTag.classList.remove('hidden');
-            }
-            
-            els.highScore.innerText = bestScore;
-
-            if(state.mode === 'stack') {
-                els.recordDetail.innerText = `最終進度: 序列長度 ${state.sequence.length}`;
-            } else {
-                els.recordDetail.innerText = `最終進度: 第 ${state.round} 關`;
-            }
-        }
-
-        function renderGrid(mode, diff) {
-            const setting = gameConfig[mode][diff];
-            els.grid.innerHTML = '';
-            els.grid.className = `control-panel ${setting.layout}`;
-            
-            setting.pool.forEach((btnId, index) => {
-                const btn = document.createElement('div');
-                btn.className = `btn b${btnId}`;
-                btn.dataset.id = index; 
-                btn.dataset.tone = tones[index];
-                btn.innerText = index + 1;
-                btn.addEventListener('pointerdown', (e) => handleInput(index, btn));
-                els.grid.appendChild(btn);
-            });
-        }
-        
-        function updateHp() {
-            els.hpBar.style.width = state.hp + '%';
-            els.hpBar.classList.remove('hp-damage');
-            if(state.hp > 50) els.hpBar.style.backgroundColor = '#2ed573';
-            else if(state.hp > 25) els.hpBar.style.backgroundColor = '#f1c40f';
-            else els.hpBar.style.backgroundColor = '#ff4757';
-        }
-
-        function showMessage(text, duration = 1000) {
-            els.msg.innerText = text;
-            els.msg.style.opacity = 1;
-            
-            if (duration < 5000) {
-                setTimeout(() => els.msg.style.opacity = 0, duration);
-            }
-        }
+        updateScoreUI();
     </script>
 </body>
 </html>
