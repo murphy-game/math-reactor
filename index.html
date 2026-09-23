@@ -26,7 +26,6 @@
             min-height: 100vh; min-height: 100dvh; overflow: hidden;
         }
 
-        /* 雙層背景防呆 */
         .battle-bg-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -2; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -54,7 +53,6 @@
             cursor: pointer; display: flex; justify-content: center; align-items: center;
         }
 
-        /* 心心血量 UI */
         .hp-box {
             font-size: 1.2rem; letter-spacing: 2px;
             display: flex; align-items: center; justify-content: center;
@@ -67,7 +65,6 @@
         .score-box div { font-size: 0.65rem; color: #94a3b8; }
         .score-box span { font-size: 0.95rem; font-weight: bold; color: var(--accent-cyan); }
 
-        /* 時間倒數能量條 */
         .timer-bar-container {
             width: 100%; height: 10px; background: rgba(255,255,255,0.1);
             border-radius: 10px; margin: 6px 0; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.3);
@@ -179,7 +176,6 @@
 
         <div>
             <div class="progress-text">反應爐進度：<span id="current-q-num">1</span> / 25</div>
-            <!-- 時間倒數血條 -->
             <div class="timer-bar-container">
                 <div class="timer-bar-fill" id="timer-bar"></div>
             </div>
@@ -247,10 +243,8 @@
         let soundEnabled = true;
         let vibrateEnabled = true;
 
-        // 倒數計時器變數
         let timerInterval = null;
-        let timeLeft = 0;
-        let timePerQuestion = 6; // 預設 6 秒倒數
+        let timePerQuestion = 6;
 
         document.getElementById('high-score').innerText = highScore;
 
@@ -289,7 +283,6 @@
 
         function startTimer() {
             clearInterval(timerInterval);
-            timeLeft = timePerQuestion;
             const timerBar = document.getElementById('timer-bar');
             timerBar.style.width = '100%';
 
@@ -409,6 +402,7 @@
 
                 setTimeout(() => nextQuestion(), 600);
             } else {
+                isAnsweringLocked = true;
                 btn.classList.add('wrong');
                 hp--;
                 updateHpUI();
@@ -420,10 +414,12 @@
                 if (vibrateEnabled && navigator.vibrate) navigator.vibrate(200);
 
                 if (hp <= 0) {
-                    isAnsweringLocked = true;
                     setTimeout(() => showLoseModal("💔 反應爐過載！"), 500);
                 } else {
-                    setTimeout(() => btn.classList.remove('wrong'), 600);
+                    setTimeout(() => {
+                        btn.classList.remove('wrong');
+                        nextQuestion(); // 答錯後流暢進入下一題並重置倒數，絕不卡死
+                    }, 600);
                 }
             }
         }
